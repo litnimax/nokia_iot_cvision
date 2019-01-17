@@ -5,7 +5,10 @@ import sys
 from imutils.video import VideoStream
 import imutils
 
-
+scale = 0.7
+blur = 3
+min_area = 100
+max_area = 10000
 
 def signal_handler(sig, frame):
     print('\nRelease cap..')
@@ -18,25 +21,22 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 cap = cv2.VideoCapture(0)
-#fgbg = cv2.createBackgroundSubtractorGMG()
 
 ret, last_frame = cap.read()
-last_frame = cv2.resize(last_frame, (0,0), fx=0.5, fy=0.5)
+last_frame = cv2.resize(last_frame, (0,0), fx=scale, fy=scale)
 last_frame_gray = cv2.cvtColor(last_frame, cv2.COLOR_BGR2GRAY)
-last_frame_gray = cv2.GaussianBlur(last_frame_gray, (21, 21), 0)
+last_frame_gray = cv2.GaussianBlur(last_frame_gray, (blur, blur), 0)
 
 while(1):
     ret, frame = cap.read()
-    frame = cv2.resize(frame, (0,0), fx=0.9, fy=0.9)
+    frame = cv2.resize(frame, (0,0), fx=scale, fy=scale)
     frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    frame_gray = cv2.GaussianBlur(frame_gray, (21, 21), 0)
-
-    #fgmask = fgbg.apply(frame)
+    frame_gray = cv2.GaussianBlur(frame_gray, (blur, blur), 0)
 
     fgmask = cv2.absdiff(last_frame_gray, frame_gray)
     fgmask = cv2.threshold(fgmask, 25, 255, cv2.THRESH_BINARY)[1]
-
     fgmask = cv2.dilate(fgmask, None, iterations=2)
+
 
     cnts = cv2.findContours(fgmask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     cnts = imutils.grab_contours(cnts)
@@ -44,9 +44,9 @@ while(1):
     last_frame_gray = frame_gray
 
     for c in cnts:
-        if cv2.contourArea(c) < 2000:
+        if cv2.contourArea(c) < min_area:
             continue
-        if cv2.contourArea(c) > 100000:
+        if cv2.contourArea(c) > max_area:
             (x, y, w, h) = cv2.boundingRect(c)
             cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
             continue
