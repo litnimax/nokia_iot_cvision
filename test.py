@@ -3,12 +3,17 @@ import cv2
 import signal
 import sys
 from imutils.video import VideoStream
+import argparse
 import imutils
+
+ap = argparse.ArgumentParser()
+ap.add_argument("-v", "--video", help="video type")
+ap.add_argument("-m", "--min-area", type=int, default=100, help="minimum area size")
+ap.add_argument("-M", "--max-area", type=int, default=10000, help="maximum area size")
+args = vars(ap.parse_args())
 
 scale = 1
 blur = 3
-min_area = 100
-max_area = 10000
 main_window = 'overlay'
 
 def signal_handler(sig, frame):
@@ -20,8 +25,12 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
+if args.get("video", None) is None:
+	cap = cv2.VideoCapture(0)
+else:
+	cap = cv2.VideoCapture(args["video"])
 
-cap = cv2.VideoCapture("rtsp://admin:admin@192.168.1.29:554/RVi/1/3")
+
 
 ret, last_frame = cap.read()
 last_frame = cv2.resize(last_frame, (0,0), fx=scale, fy=scale)
@@ -45,9 +54,9 @@ while(1):
     last_frame_gray = frame_gray
 
     for c in cnts:
-        if cv2.contourArea(c) < min_area:
+        if cv2.contourArea(c) < args["min_area"]:
             continue
-        if cv2.contourArea(c) > max_area:
+        if cv2.contourArea(c) > args["max_area"]:
             (x, y, w, h) = cv2.boundingRect(c)
             cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
             continue
