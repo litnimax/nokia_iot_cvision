@@ -9,6 +9,7 @@ scale = 1
 blur = 3
 min_area = 100
 max_area = 10000
+main_window = 'overlay'
 
 def signal_handler(sig, frame):
     print('\nRelease cap..')
@@ -63,7 +64,9 @@ while(1):
 
     frame = cv2.cvtColor(frame, cv2.COLOR_RGB2RGBA)
     added_image = cv2.addWeighted(frame,1,fgmask_rgba,0.5,0)
-    cv2.imshow('overlay', added_image)
+    cv2.namedWindow(main_window)
+    cv2.moveWindow(main_window, 40, 30)
+    cv2.imshow(main_window, added_image)
     cv2.waitKey(1)
 
 
