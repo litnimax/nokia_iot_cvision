@@ -5,7 +5,7 @@ import sys
 from imutils.video import VideoStream
 import imutils
 
-scale = 0.7
+scale = 1
 blur = 3
 min_area = 100
 max_area = 10000
@@ -20,7 +20,7 @@ def signal_handler(sig, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("rtsp://admin:admin@192.168.1.29:554/RVi/1/3")
 
 ret, last_frame = cap.read()
 last_frame = cv2.resize(last_frame, (0,0), fx=scale, fy=scale)
