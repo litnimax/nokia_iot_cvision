@@ -36,7 +36,7 @@ ret, last_frame = cap.read()
 font                   = cv2.FONT_HERSHEY_SIMPLEX
 bottomLeftCornerOfText = (20,20)
 fontScale              = 0.5
-fontColor              = (127,127,127)
+fontColor              = (0,0,127)
 lineType               = 1
 text                   = 'LB to set new point, enter to end polygon, n to new polygon'
 cv2.putText(last_frame, text, bottomLeftCornerOfText, font, fontScale, fontColor, lineType)
