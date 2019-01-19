@@ -3,6 +3,9 @@ import cv2
 import argparse
 import signal
 import sys
+import json
+
+polygons = []
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", help="video type")
@@ -80,7 +83,11 @@ class PolygonDrawer(object):
           if cv2.waitKey(50) == ENTER_KEYCODE: # enter hit
             self.done = True
 
-        print("Completing polygon with %d points: %s" % (len(self.points), self.points))
+        if (len(self.points) > 2):
+            print("Completing polygon with %d points: %s" % (len(self.points), self.points))
+            polygons.append(self.points)
+        else:
+            print("Not-completing polygon(points < 3): %s" % (self.points))
         self.canvas = last_frame.copy()
         if (len(self.points) > 0):
             cv2.fillPoly(self.canvas, np.array([self.points]), FINAL_LINE_COLOR)
@@ -98,4 +105,6 @@ class PolygonDrawer(object):
 if __name__ == "__main__":
     while(PolygonDrawer("Polygon").run() != "end"):
       print("")
+    with open('areas.json', 'w') as outfile:
+        json.dump(polygons, outfile, indent=1)
 
