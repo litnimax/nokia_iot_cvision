@@ -8,7 +8,7 @@ import imutils
 import json
 from shapely.geometry import Polygon
 
-main_window = 'overlay'
+main_window = 'Motion detector'
 
 def signal_handler(sig, frame):
     print('\nExit..')
