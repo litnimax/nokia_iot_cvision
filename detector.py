@@ -19,8 +19,8 @@ def arg_init():
     ap.add_argument("-c", "--source", help="video source")
     ap.add_argument("-m", "--min-area", type=int, default=100, help="minimum area size")
     ap.add_argument("-H", "--height", type=int, default=360, help="height")
-    ap.add_argument("-b", "--blur", type=int, default=5, help="blur core")
     ap.add_argument("-W", "--width", type=int, default=640, help="width")
+    ap.add_argument("-b", "--blur", type=int, default=5, help="blur core")
     ap.add_argument("-t", "--type", default="color", help="video type: color or processed")
     ap.add_argument("-a", "--areas", default="areas.json", help="areas file")
     return vars(ap.parse_args())
@@ -35,7 +35,6 @@ def read_areas():
             if (len(detect_areas) > 0):
                 print("Load %s areas" % len(detect_areas))
             return detect_areas
-
 
 
 class Frame(object):
