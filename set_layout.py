@@ -9,6 +9,8 @@ polygons = []
 
 ap = argparse.ArgumentParser()
 ap.add_argument("-v", "--video", help="video type")
+ap.add_argument("-H", "--height", type=int, default=360, help="height")
+ap.add_argument("-W", "--width", type=int, default=640, help="width")
 args = vars(ap.parse_args())
 
 def signal_handler(sig, frame):
@@ -35,6 +37,7 @@ N_KEYCODE = 110
 # ============================================================================
 
 ret, last_frame = cap.read()
+last_frame = cv2.resize(last_frame, (args["width"], args["height"]))
 
 font                   = cv2.FONT_HERSHEY_SIMPLEX
 bottomLeftCornerOfText = (20,20)
