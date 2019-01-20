@@ -112,7 +112,6 @@ while(1):
 
     overlay_frame = mask_object.get_mask()
 
-
     for detect_area in detect_areas:
         cv2.polylines(overlay_frame, np.array([detect_area]), True, (110, 110, 110), 1)
 
@@ -128,9 +127,6 @@ while(1):
         for detect_area in detect_areas:
             detect_area_pl = Polygon(detect_area)
             countour_area_pl = Polygon(countour_rect)
-            #countour_typle = tuple([tuple(row) for row in countour])
-            #countour_area_typle_pl = Polygon(countour_typle)
-            #print(countour_area_typle_pl)
             intersect = detect_area_pl.intersects(countour_area_pl)
             if (intersect == True):
                 cv2.polylines(overlay_frame, np.array([detect_area]), True, (0, 0, 255), 3)
