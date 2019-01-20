@@ -83,8 +83,8 @@ class PolygonDrawer(object):
         cv2.setMouseCallback(self.window_name, self.on_mouse)
 
         while(not self.done):
-          if cv2.waitKey(50) == ENTER_KEYCODE: # enter hit
-            self.done = True
+            if cv2.waitKey(50) == ENTER_KEYCODE:
+                self.done = True
 
         if (len(self.points) > 2):
             print("Completing polygon with %d points: %s" % (len(self.points), self.points))
@@ -98,16 +98,16 @@ class PolygonDrawer(object):
 
         key = cv2.waitKey()
         if (key == ENTER_KEYCODE):
-          cv2.destroyWindow(self.window_name)
-          return "end"
+            cv2.destroyWindow(self.window_name)
+            return "end"
         elif (key == N_KEYCODE):
-          return "new"
+            return "new"
 
 # ============================================================================
 
 if __name__ == "__main__":
     while(PolygonDrawer("Polygon").run() != "end"):
-      print("")
+        print("")
     with open('areas.json', 'w') as outfile:
-        json.dump(polygons, outfile, indent=1)
+        json.dump(polygons, outfile)
 
