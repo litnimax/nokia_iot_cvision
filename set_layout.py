@@ -4,6 +4,7 @@ import argparse
 import signal
 import sys
 import json
+import uuid
 
 polygons = []
 
@@ -88,7 +89,8 @@ class PolygonDrawer(object):
 
         if (len(self.points) > 2):
             print("Completing polygon with %d points: %s" % (len(self.points), self.points))
-            polygons.append(self.points)
+            dict_points = dict.fromkeys([str(uuid.uuid4())], self.points)
+            polygons.append(dict_points)
         else:
             print("Not-completing polygon(points < 3): %s" % (self.points))
         self.canvas = last_frame.copy()
