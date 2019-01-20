@@ -8,7 +8,6 @@ import imutils
 import json
 from shapely.geometry import Polygon
 
-scale = 1
 main_window = 'overlay'
 
 def signal_handler(sig, frame):
