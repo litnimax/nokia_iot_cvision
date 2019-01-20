@@ -108,8 +108,8 @@ while(1):
         frame = cv2.cvtColor(frame_object.get_color_frame(), cv2.COLOR_RGB2RGBA)
     else:
         frame = cv2.cvtColor(frame_object.get_frame(), cv2.COLOR_RGB2RGBA)
-    countours = mask_object.get_countours(prev_frame, current_frame)
 
+    countours = mask_object.get_countours(prev_frame, current_frame)
     overlay_frame = mask_object.get_mask()
 
     for detect_area in detect_areas:
