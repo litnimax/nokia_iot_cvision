@@ -28,7 +28,7 @@ def arg_init():
 
 def read_areas():
     if args.get("areas", None) is None:
-        return []
+        return {}
     else:
         with open(args["areas"]) as file:
             detect_areas = json.load(file)
@@ -93,6 +93,15 @@ class Mask(object):
         return fgmask
 
 
+def render_detect_areas(frame, areas):
+    for key, detect_area in areas.items():
+        cv2.polylines(frame, np.array([detect_area]), True, (110, 110, 110), 1)
+        detect_area_pl = Polygon(detect_area)
+        x = int(detect_area_pl.centroid.coords[0][0])
+        y = int(detect_area_pl.centroid.coords[0][1])
+        cv2.putText(frame, key[:13], (x-50,y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,127), 1)
+    return frame
+
 args = arg_init()
 signal.signal(signal.SIGINT, signal_handler)
 detect_areas = read_areas()
@@ -112,8 +121,7 @@ while(1):
     countours = mask_object.get_countours(prev_frame, current_frame)
     overlay_frame = mask_object.get_mask()
 
-    for detect_area in detect_areas:
-        cv2.polylines(overlay_frame, np.array([detect_area]), True, (110, 110, 110), 1)
+    overlay_frame = render_detect_areas(overlay_frame, detect_areas)
 
     for countour in countours:
         if cv2.contourArea(countour) < args["min_area"]:
@@ -124,13 +132,13 @@ while(1):
         cv2.polylines(overlay_frame, np.array([countour_rect]), True, (127, 255, 127), 2)
         cv2.polylines(overlay_frame, np.array([countour]), True, (127, 255, 127), 1)
 
-        for detect_area in detect_areas:
+        for key, detect_area in detect_areas.items():
             detect_area_pl = Polygon(detect_area)
             countour_area_pl = Polygon(countour_rect)
             intersect = detect_area_pl.intersects(countour_area_pl)
             if (intersect == True):
                 cv2.polylines(overlay_frame, np.array([detect_area]), True, (0, 0, 255), 3)
-                print("Intersect in armed area %s!" % detect_area)
+                print("Intersect in armed area %s!" % key)
 
     overlay_frame = cv2.cvtColor(overlay_frame, cv2.COLOR_RGB2RGBA)
     overlay_frame[np.where((overlay_frame == [0,0,0,255]).all(axis = 2))] = [0,0,0,0]
