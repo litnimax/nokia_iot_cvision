@@ -7,6 +7,8 @@ import argparse
 import imutils
 import json
 from shapely.geometry import Polygon
+import multiprocessing
+import http_api_server
 
 main_window = 'Motion detector'
 
@@ -108,6 +110,13 @@ detect_areas = read_areas()
 frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
 mask_object = Mask()
 
+def http_callback(path, body):
+    return str(detect_areas)
+
+server = http_api_server.server(9000, http_callback)
+
+t = multiprocessing.Process(target=server.start)
+t.start()
 
 while(1):
     current_frame = frame_object.get_frame()
