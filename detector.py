@@ -88,6 +88,8 @@ class Mask(object):
     def __init__(self, width, height):
         print("Init Mask object...")
         self.fgmask = []
+        self.accum_image = np.zeros((height,width), np.uint8)
+        self.accum_image[self.accum_image == 0] = 150
 
     def get_countours(self, prev, current):
         mask = cv2.absdiff(prev, current)
@@ -104,6 +106,23 @@ class Mask(object):
         fgmask[np.where((fgmask == [127,127,127]).all(axis = 2))] = [0,0,225]
         return fgmask
 
+    def update_accum(self):
+        mask = self.fgmask.copy()
+        mask[mask == 255] = 1
+        self.accum_image = cv2.add(self.accum_image, mask)
+        max_arr = self.accum_image.max()
+        if (max_arr > 250):
+            self.accum_image = np.divide(self.accum_image, 1.01)
+            self.accum_image = self.accum_image.astype(np.uint8)
+        print(max_arr, self.accum_image.max())
+
+    def get_heatmap(self):
+        colormap = cv2.applyColorMap(self.accum_image, cv2.COLORMAP_JET)
+        colormap_rgba = cv2.cvtColor(colormap, cv2.COLOR_RGB2RGBA)
+        colormap_rgba[np.where((colormap_rgba == [128,0,0,255]).all(axis = 2))] = [0,0,0,0]
+        return colormap_rgba
+
+
 
 def render_detect_areas(frame, areas):
     for key, detect_area in areas.items():
@@ -119,7 +138,7 @@ signal.signal(signal.SIGINT, signal_handler)
 detect_areas = read_areas()
 
 frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
-mask_object = Mask()
+mask_object = Mask(args["width"], args["height"])
 
 class http_api():
     def get_image(path, body, miso, mosi):
@@ -152,6 +171,7 @@ while(1):
 
     countours = mask_object.get_countours(prev_frame, current_frame)
     overlay_frame = mask_object.get_mask()
+    mask_object.update_accum()
 
     overlay_frame = render_detect_areas(overlay_frame, detect_areas)
 
@@ -179,6 +199,16 @@ while(1):
     cv2.namedWindow(main_window)
     cv2.moveWindow(main_window, 20, 20)
     cv2.imshow(main_window, user_image)
+
+
+    heatmap = mask_object.get_heatmap()
+    heatmap_user_image = cv2.addWeighted(frame, 0.7, heatmap, 0.5 , 0)
+    heatmap_windows = "Heatmap"
+    cv2.namedWindow(heatmap_windows)
+    cv2.moveWindow(heatmap_windows, 20, 20+450)
+    cv2.imshow(heatmap_windows, heatmap_user_image)
+
+
     cv2.waitKey(1)
 
     cmd = ""
