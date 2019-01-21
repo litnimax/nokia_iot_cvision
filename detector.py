@@ -7,12 +7,14 @@ import argparse
 import imutils
 import json
 from shapely.geometry import Polygon
-import multiprocessing
 import http_api_server
+import base64
+
 
 main_window = 'Motion detector'
 
 def signal_handler(sig, frame):
+    http_callback_get_image("path", "body")
     print('\nExit..')
     sys.exit(0)
 
@@ -110,13 +112,20 @@ detect_areas = read_areas()
 frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
 mask_object = Mask()
 
-def http_callback(path, body):
-    return str(detect_areas)
+def http_callback_get_image(path, body):
+    frame = frame_object.get_prev_frame()
+    print(frame)
+    cv2.imwrite("test.jpg", frame)
+    frame_jpg = cv2.imencode('.jpg', frame)[1]
+    frame_jpg_encoded = base64.b64encode(frame_jpg)
+    return frame_jpg_encoded
 
-server = http_api_server.server(9000, http_callback)
+def http_callback_get_area(path, body):
+    return "http_callback_get_area"
 
-t = multiprocessing.Process(target=server.start)
-t.start()
+callbacks = {'/get_image': http_callback_get_image, '/get_area': http_callback_get_area}
+
+server = http_api_server.server(9000, callbacks)
 
 while(1):
     current_frame = frame_object.get_frame()
@@ -146,7 +155,7 @@ while(1):
             intersect = detect_area_pl.intersects(countour_area_pl)
             if (intersect == True):
                 cv2.polylines(overlay_frame, np.array([detect_area]), True, (0, 0, 255), 3)
-                print("Intersect in armed area %s!" % key)
+                #print("Intersect in armed area %s!" % key)
 
     overlay_frame = cv2.cvtColor(overlay_frame, cv2.COLOR_RGB2RGBA)
     overlay_frame[np.where((overlay_frame == [0,0,0,255]).all(axis = 2))] = [0,0,0,0]
