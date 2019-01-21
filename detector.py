@@ -32,7 +32,6 @@ def arg_init():
     ap.add_argument("-H", "--height", type=int, default=360, help="height")
     ap.add_argument("-W", "--width", type=int, default=640, help="width")
     ap.add_argument("-b", "--blur", type=int, default=5, help="blur core")
-    ap.add_argument("-t", "--type", default="color", help="video type: color or processed")
     ap.add_argument("-a", "--areas", default="areas.json", help="areas file")
     ap.add_argument("-p", "--port", type=int, default=9001, help="http api port")
     return vars(ap.parse_args())
@@ -66,11 +65,6 @@ class Frame(object):
         self.start_time = time.time()
         self.frames_counter = 0
         Thread(target=self.frames_clear).start()
-        #print("Create window...")
-        #cv2.namedWindow(main_window)
-        #cv2.moveWindow(main_window, 20, 20)
-        #cv2.imshow(main_window, self.get_color_frame())
-        #cv2.waitKey(1)
 
     def frames_clear(self):
         while True:
@@ -86,12 +80,6 @@ class Frame(object):
     def get_fps(self):
         fps = self.frames_counter / (time.time() - self.start_time)
         return fps
-
-    def print_fps(self):
-        while True:
-            time.sleep(1)
-            print("%.1f" % self.get_fps())
-            #print(self.frames_counter)
 
     def capture_frame(self):
         self.prev_frame = self.current_frame.copy()
@@ -159,16 +147,11 @@ class Mask(object):
         colormap_rgba[np.where((colormap_rgba == [128,0,0,255]).all(axis = 2))] = [0,0,0,0]
         return colormap_rgba
 
+
 class Http():
     def __init__(self):
         self.miso = Queue()
         self.mosi = Queue()
-
-    def mosi(self):
-        return self.mosi
-
-    def miso(self):
-        return self.miso
 
     def get_frame(self, frametype):
         self.miso.put(frametype)
