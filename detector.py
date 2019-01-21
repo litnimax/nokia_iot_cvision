@@ -20,7 +20,6 @@ import gevent.socket
 import gevent.monkey
 gevent.monkey.patch_all()
 
-main_window = 'Motion detector'
 
 def signal_handler(sig, frame):
     sys.exit(0)
@@ -67,11 +66,11 @@ class Frame(object):
         self.start_time = time.time()
         self.frames_counter = 0
         Thread(target=self.frames_clear).start()
-        print("Create window...")
-        cv2.namedWindow(main_window)
-        cv2.moveWindow(main_window, 20, 20)
-        cv2.imshow(main_window, self.get_color_frame())
-        cv2.waitKey(1)
+        #print("Create window...")
+        #cv2.namedWindow(main_window)
+        #cv2.moveWindow(main_window, 20, 20)
+        #cv2.imshow(main_window, self.get_color_frame())
+        #cv2.waitKey(1)
 
     def frames_clear(self):
         while True:
@@ -94,7 +93,7 @@ class Frame(object):
             print("%.1f" % self.get_fps())
             #print(self.frames_counter)
 
-    def get_frame(self):
+    def capture_frame(self):
         self.prev_frame = self.current_frame.copy()
         ret, frame = self.capture_object.read()
         self.frames_counter += 1
@@ -103,7 +102,6 @@ class Frame(object):
         gray_resized_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
         blur_gray_resized_frame = cv2.GaussianBlur(gray_resized_frame, (self.blur_core, self.blur_core), 0)
         self.current_frame = blur_gray_resized_frame
-        return self.current_frame.copy()
 
     def render_detect_areas(self, frame, areas):
         for key, detect_area in areas.items():
@@ -116,6 +114,9 @@ class Frame(object):
 
     def get_color_frame(self):
         return self.current_color_frame.copy()
+
+    def get_current_frame(self):
+        return self.current_frame.copy()
 
     def get_prev_frame(self):
         return self.prev_frame.copy()
@@ -212,22 +213,13 @@ http_api = Http()
 
 server = http_api_server.server(args["port"], http_api.callbacks_generate())
 
-Thread(target=frame_object.print_fps).start()
+#Thread(target=frame_object.print_fps).start()
 
-print("Start main cycle...")
-while(1):
-    current_frame = frame_object.get_frame()
-    prev_frame = frame_object.get_prev_frame()
-    if (args["type"] == "color"):
-        frame = cv2.cvtColor(frame_object.get_color_frame(), cv2.COLOR_RGB2RGBA)
-    else:
-        frame = cv2.cvtColor(frame_object.get_frame(), cv2.COLOR_RGB2RGBA)
-
-    countours = mask_object.get_countours(prev_frame, current_frame)
+def render_user_frame():
+    countours = mask_object.get_countours(frame_object.get_prev_frame(), frame_object.get_current_frame())
     overlay_frame = mask_object.get_mask()
-    mask_object.update_accum()
-
     overlay_frame = frame_object.render_detect_areas(overlay_frame, detect_areas)
+    frame = cv2.cvtColor(frame_object.get_color_frame(), cv2.COLOR_RGB2RGBA)
 
     for countour in countours:
         if cv2.contourArea(countour) < args["min_area"]:
@@ -244,15 +236,41 @@ while(1):
             intersect = detect_area_pl.intersects(countour_area_pl)
             if (intersect == True):
                 cv2.polylines(overlay_frame, np.array([detect_area]), True, (0, 0, 255), 3)
-                #print("Intersect in armed area %s!" % key)
 
     overlay_frame = cv2.cvtColor(overlay_frame, cv2.COLOR_RGB2RGBA)
     overlay_frame[np.where((overlay_frame == [0,0,0,255]).all(axis = 2))] = [0,0,0,0]
     cv2.putText(frame, "FPS: %.1f" % frame_object.get_fps(), (5,15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
     user_image = cv2.addWeighted(frame, 1, overlay_frame, 0.5, 0)
-    cv2.namedWindow(main_window)
-    cv2.moveWindow(main_window, 20, 20)
-    cv2.imshow(main_window, user_image)
+    return user_image
+
+def show_window(name, x, y, image):
+    cv2.namedWindow(name)
+    cv2.moveWindow(name, x, y)
+    cv2.imshow(name, image)
+
+print("Start main cycle...")
+while(1):
+    frame_object.capture_frame()
+    countours = mask_object.get_countours(frame_object.get_prev_frame(), frame_object.get_current_frame())
+    mask_object.update_accum()
+
+    for countour in countours:
+        if cv2.contourArea(countour) < args["min_area"]:
+            continue
+
+        (x, y, w, h) = cv2.boundingRect(countour)
+        countour_rect = [[x, y], [x+w, y], [x+w, y+h], [x, y+h]]
+
+        for key, detect_area in detect_areas.items():
+            detect_area_pl = Polygon(detect_area)
+            countour_area_pl = Polygon(countour_rect)
+            intersect = detect_area_pl.intersects(countour_area_pl)
+            if (intersect == True):
+                print("Intersect in armed area %s!" % key)
+
+
+
+    show_window('Motion detector', 20, 20, render_user_frame())
 
     #heatmap = mask_object.get_heatmap()
     #heatmap_user_image = cv2.addWeighted(frame, 0.7, heatmap, 0.5 , 0)
@@ -276,7 +294,10 @@ while(1):
 
     cmd = http_api.get_cmd()
     if (cmd == "user_frame"):
-        http_api.send_frame(user_image)
+        http_user_image = render_user_frame()
+        http_api.send_frame(http_user_image)
     elif (cmd == "heatmap_frame"):
-        http_api.send_frame(heatmap_user_image)
+        http_heatmap = mask_object.get_heatmap()
+        http_heatmap_user_image = cv2.addWeighted(frame, 0.7, http_heatmap, 0.5 , 0)
+        http_api.send_frame(http_heatmap_user_image)
 
