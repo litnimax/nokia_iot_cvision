@@ -20,11 +20,13 @@ class http_handler(BaseHTTPRequestHandler):
 
 class server:
     def __init__(self, port, callbacks):
+        print("Init http api server...")
         def handler(*args):
             http_handler(callbacks, *args)
         self.httpd = HTTPServer(('', port), handler)
         multiprocessing.Process(target=self.httpd.serve_forever).start()
 
     def __del__(self):
+      print("Close http server...")
       self.httpd.server_close()
 

@@ -18,6 +18,7 @@ def signal_handler(sig, frame):
     sys.exit(0)
 
 def arg_init():
+    print("Init argparse...")
     ap = argparse.ArgumentParser()
     ap.add_argument("-c", "--source", help="video source")
     ap.add_argument("-m", "--min-area", type=int, default=100, help="minimum area size")
@@ -42,16 +43,23 @@ def read_areas():
 
 class Frame(object):
     def __init__(self, source, width, height, blur_core):
+        print("Init capture object...")
         if (source is None):
             self.capture_object = cv2.VideoCapture(0)
         else:
             self.capture_object = cv2.VideoCapture(source)
+        print("Init frame struct...")
         self.width = width
         self.height = height
         self.blur_core = blur_core
         self.current_frame = np.zeros((height,width,1), np.uint8)
         self.current_color_frame = np.zeros((height,width,3), np.uint8)
         self.prev_frame = self.current_frame.copy()
+        print("Create window...")
+        cv2.namedWindow(main_window)
+        cv2.moveWindow(main_window, 20, 20)
+        cv2.imshow(main_window, self.get_frame())
+        cv2.waitKey(1)
 
     def __del__(self):
         print('Release cap..')
@@ -77,6 +85,7 @@ class Frame(object):
 
 class Mask(object):
     def __init__(self):
+        print("Init Mask object...")
         self.fgmask = []
 
     def get_countours(self, prev, current):
@@ -126,6 +135,7 @@ callbacks = {'/get_image': http_callback_get_image, '/get_area': http_callback_g
 
 server = http_api_server.server(9000, callbacks)
 
+print("Start main cycle...")
 while(1):
     current_frame = frame_object.get_frame()
     prev_frame = frame_object.get_prev_frame()
