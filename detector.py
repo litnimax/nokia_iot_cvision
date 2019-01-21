@@ -161,12 +161,7 @@ class Mask(object):
 
 
 
-args = arg_init()
-signal.signal(signal.SIGINT, signal_handler)
-detect_areas = read_areas()
 
-frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
-mask_object = Mask(args["width"], args["height"])
 
 class http_api():
     def get_image(path, body, miso, mosi):
@@ -184,9 +179,14 @@ class http_api():
 
 miso = Queue()
 mosi = Queue()
+args = arg_init()
+signal.signal(signal.SIGINT, signal_handler)
+detect_areas = read_areas()
 
 callbacks = {'/get_image': http_api.get_image, '/get_area': http_api.get_area}
 server = http_api_server.server(args["port"], callbacks, miso, mosi)
+frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
+mask_object = Mask(args["width"], args["height"])
 Thread(target=frame_object.print_fps).start()
 
 print("Start main cycle...")
