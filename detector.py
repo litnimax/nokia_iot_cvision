@@ -243,10 +243,27 @@ def render_user_frame():
     user_image = cv2.addWeighted(frame, 1, overlay_frame, 0.5, 0)
     return user_image
 
+def render_real_frame():
+    real_image = frame_object.get_current_frame()
+    real_image = cv2.cvtColor(real_image, cv2.COLOR_GRAY2RGB)
+    for countour in countours:
+        if cv2.contourArea(countour) < args["min_area"]:
+            continue
+        cv2.polylines(real_image, np.array([countour]), True, (127, 255, 127), 1)
+
+    return real_image
+
+def render_heatmap_frame():
+    frame = cv2.cvtColor(frame_object.get_color_frame(), cv2.COLOR_RGB2RGBA)
+    http_heatmap = mask_object.get_heatmap()
+    http_heatmap_user_image = cv2.addWeighted(frame, 0.7, http_heatmap, 0.5 , 0)
+    return http_heatmap_user_image
+
 def show_window(name, x, y, image):
     cv2.namedWindow(name)
     cv2.moveWindow(name, x, y)
     cv2.imshow(name, image)
+    cv2.waitKey(1)
 
 print("Start main cycle...")
 while(1):
@@ -270,34 +287,15 @@ while(1):
 
 
 
-    show_window('Motion detector', 20, 20, render_user_frame())
-
-    #heatmap = mask_object.get_heatmap()
-    #heatmap_user_image = cv2.addWeighted(frame, 0.7, heatmap, 0.5 , 0)
-    #heatmap_windows = "Heatmap"
-    #cv2.namedWindow(heatmap_windows)
-    #cv2.moveWindow(heatmap_windows, 20, 20+450)
-    #cv2.imshow(heatmap_windows, heatmap_user_image)
-
-    #real_image = frame_object.get_frame()
-    #real_image = cv2.cvtColor(real_image, cv2.COLOR_RGB2RGBA)
-    #cv2.polylines(real_image, np.array([countour]), True, (127, 255, 127), 1)
-    #real_image = cv2.addWeighted(real_image, 1, overlay_frame, 0 , 0)
-    #real_windows = "Real image"
-    #cv2.namedWindow(real_windows)
-    #cv2.moveWindow(real_windows, 20+700, 20+450)
-    #cv2.imshow(real_windows, real_image)
-
-    cv2.waitKey(1)
-
-
+    #show_window('Motion detector', 20, 20, render_user_frame())
+    #show_window('Heatmap', 20, 20+450, render_heatmap_frame())
+    #show_window('Real image', 20+700, 20+450, render_real_frame())
 
     cmd = http_api.get_cmd()
     if (cmd == "user_frame"):
         http_user_image = render_user_frame()
         http_api.send_frame(http_user_image)
     elif (cmd == "heatmap_frame"):
-        http_heatmap = mask_object.get_heatmap()
-        http_heatmap_user_image = cv2.addWeighted(frame, 0.7, http_heatmap, 0.5 , 0)
+        http_heatmap_user_image = render_heatmap_frame()
         http_api.send_frame(http_heatmap_user_image)
 
