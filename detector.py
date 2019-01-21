@@ -23,7 +23,6 @@ gevent.monkey.patch_all()
 main_window = 'Motion detector'
 
 def signal_handler(sig, frame):
-    print('\nExit..')
     sys.exit(0)
 
 def arg_init():
@@ -71,7 +70,7 @@ class Frame(object):
         print("Create window...")
         cv2.namedWindow(main_window)
         cv2.moveWindow(main_window, 20, 20)
-        cv2.imshow(main_window, self.get_frame())
+        cv2.imshow(main_window, self.get_color_frame())
         cv2.waitKey(1)
 
     def frames_clear(self):
@@ -81,7 +80,7 @@ class Frame(object):
             self.frames_counter = 0
 
     def __del__(self):
-        print('Release cap..')
+        print('\nRelease cap..')
         self.capture_object.release()
         cv2.destroyAllWindows()
 
@@ -115,10 +114,9 @@ class Frame(object):
 
 class Mask(object):
     def __init__(self, width, height):
-        print("Init Mask object...")
+        print("Init mask object...")
         self.fgmask = []
         self.accum_image = np.zeros((height,width), np.uint8)
-        self.accum_image[self.accum_image == 0] = 150
 
     def get_countours(self, prev, current):
         mask = cv2.absdiff(prev, current)
