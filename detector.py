@@ -223,21 +223,27 @@ while(1):
 
     overlay_frame = cv2.cvtColor(overlay_frame, cv2.COLOR_RGB2RGBA)
     overlay_frame[np.where((overlay_frame == [0,0,0,255]).all(axis = 2))] = [0,0,0,0]
-
     cv2.putText(frame, "FPS: %.1f" % frame_object.get_fps(), (5,15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
     user_image = cv2.addWeighted(frame, 1, overlay_frame, 0.5, 0)
     cv2.namedWindow(main_window)
     cv2.moveWindow(main_window, 20, 20)
     cv2.imshow(main_window, user_image)
 
+    #heatmap = mask_object.get_heatmap()
+    #heatmap_user_image = cv2.addWeighted(frame, 0.7, heatmap, 0.5 , 0)
+    #heatmap_windows = "Heatmap"
+    #cv2.namedWindow(heatmap_windows)
+    #cv2.moveWindow(heatmap_windows, 20, 20+450)
+    #cv2.imshow(heatmap_windows, heatmap_user_image)
 
-    heatmap = mask_object.get_heatmap()
-    heatmap_user_image = cv2.addWeighted(frame, 0.7, heatmap, 0.5 , 0)
-    heatmap_windows = "Heatmap"
-    cv2.namedWindow(heatmap_windows)
-    cv2.moveWindow(heatmap_windows, 20, 20+450)
-    cv2.imshow(heatmap_windows, heatmap_user_image)
-
+    #real_image = frame_object.get_frame()
+    #real_image = cv2.cvtColor(real_image, cv2.COLOR_RGB2RGBA)
+    #cv2.polylines(real_image, np.array([countour]), True, (127, 255, 127), 1)
+    #real_image = cv2.addWeighted(real_image, 1, overlay_frame, 0 , 0)
+    #real_windows = "Real image"
+    #cv2.namedWindow(real_windows)
+    #cv2.moveWindow(real_windows, 20+700, 20+450)
+    #cv2.imshow(real_windows, real_image)
 
     cv2.waitKey(1)
 
