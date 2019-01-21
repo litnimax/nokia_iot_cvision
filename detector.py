@@ -27,6 +27,7 @@ def arg_init():
     ap.add_argument("-b", "--blur", type=int, default=5, help="blur core")
     ap.add_argument("-t", "--type", default="color", help="video type: color or processed")
     ap.add_argument("-a", "--areas", default="areas.json", help="areas file")
+    ap.add_argument("-p", "--port", type=int, default=9001, help="http api port")
     return vars(ap.parse_args())
 
 
@@ -133,7 +134,7 @@ def http_callback_get_area(path, body):
 
 callbacks = {'/get_image': http_callback_get_image, '/get_area': http_callback_get_area}
 
-server = http_api_server.server(9000, callbacks)
+server = http_api_server.server(args["port"], callbacks)
 
 print("Start main cycle...")
 while(1):
