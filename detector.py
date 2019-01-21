@@ -20,10 +20,6 @@ import gevent.socket
 import gevent.monkey
 gevent.monkey.patch_all()
 
-
-def signal_handler(sig, frame):
-    sys.exit(0)
-
 def arg_init():
     print("Init argparse...")
     ap = argparse.ArgumentParser()
@@ -238,7 +234,7 @@ def show_window(name, x, y, image):
 
 
 args = arg_init()
-signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGINT, (lambda sig, frame: sys.exit(0)))
 detect_areas = read_areas()
 
 frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
