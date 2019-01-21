@@ -186,18 +186,6 @@ class Http():
     def get_area(self, path, body):
         return "http_callback_get_area"
 
-args = arg_init()
-signal.signal(signal.SIGINT, signal_handler)
-detect_areas = read_areas()
-
-frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
-mask_object = Mask(args["width"], args["height"])
-http_api = Http()
-
-server = http_api_server.server(args["port"], http_api.callbacks_generate())
-
-#Thread(target=frame_object.print_fps).start()
-
 def render_user_frame():
     countours = mask_object.get_countours(frame_object.get_prev_frame(), frame_object.get_current_frame())
     overlay_frame = mask_object.get_mask()
@@ -248,6 +236,17 @@ def show_window(name, x, y, image):
     cv2.imshow(name, image)
     cv2.waitKey(1)
 
+
+args = arg_init()
+signal.signal(signal.SIGINT, signal_handler)
+detect_areas = read_areas()
+
+frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
+mask_object = Mask(args["width"], args["height"])
+http_api = Http()
+
+server = http_api_server.server(args["port"], http_api.callbacks_generate())
+
 print("Start main cycle...")
 while(1):
     frame_object.capture_frame()
@@ -267,8 +266,6 @@ while(1):
             intersect = detect_area_pl.intersects(countour_area_pl)
             if (intersect == True):
                 print("Intersect in armed area %s!" % key)
-
-
 
     #show_window('Motion detector', 20, 20, render_user_frame())
     #show_window('Heatmap', 20, 20+450, render_heatmap_frame())
