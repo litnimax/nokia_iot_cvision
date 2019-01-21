@@ -149,17 +149,17 @@ class Http():
         self.miso = Queue()
         self.mosi = Queue()
 
-    def get_frame(self, frametype):
+    def get_data_by_key(self, frametype):
         self.miso.put(frametype)
         try:
             return self.mosi.get(timeout=1)
         except:
             return b""
 
-    def send_frame(self, frame):
-        self.mosi.put(frame)
+    def send_data(self, data):
+        self.mosi.put(data)
 
-    def get_cmd(self):
+    def get_key(self):
         try:
             return self.miso.get_nowait()
         except:
@@ -168,19 +168,30 @@ class Http():
     def callbacks_generate(self):
         callbacks = {   '/get_user_image':          self.get_user_image,
                         '/get_heatmap_image':       self.get_heatmap_image,
-                        '/get_area':                self.get_area}
+                        '/get_real_image':          self.get_real_image,
+                        '/get_fps':                 self.get_fps,
+                        '/get_areas':               self.get_areas}
         return callbacks
 
     def get_user_image(self, path, body):
-        frame = self.get_frame("user_frame")
+        frame = self.get_data_by_key("user_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
 
     def get_heatmap_image(self, path, body):
-        frame = self.get_frame("heatmap_frame")
+        frame = self.get_data_by_key("heatmap_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
 
-    def get_area(self, path, body):
-        return "http_callback_get_area"
+    def get_real_image(self, path, body):
+        frame = self.get_data_by_key("real_image")
+        return base64.b64encode(cv2.imencode('.jpg', frame)[1])
+
+    def get_areas(self, path, body):
+        areas = self.get_data_by_key("areas")
+        return str(areas).encode()
+
+    def get_fps(self, path, body):
+        areas = self.get_data_by_key("fps")
+        return str(areas).encode()
 
 def render_user_frame():
     countours = mask_object.get_countours(frame_object.get_prev_frame(), frame_object.get_current_frame())
@@ -254,7 +265,7 @@ while(1):
             continue
 
         (x, y, w, h) = cv2.boundingRect(countour)
-        countour_rect = [[x, y], [x+w, y], [x+w, y+h], [x, y+h]]
+        countour_rect = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
 
         for key, detect_area in detect_areas.items():
             detect_area_pl = Polygon(detect_area)
@@ -267,11 +278,18 @@ while(1):
     #show_window('Heatmap', 20, 20+450, render_heatmap_frame())
     #show_window('Real image', 20+700, 20+450, render_real_frame())
 
-    cmd = http_api.get_cmd()
-    if (cmd == "user_frame"):
+    key = http_api.get_key()
+    if (key == "user_image"):
         http_user_image = render_user_frame()
-        http_api.send_frame(http_user_image)
-    elif (cmd == "heatmap_frame"):
+        http_api.send_data(http_user_image)
+    elif (key == "heatmap_image"):
         http_heatmap_user_image = render_heatmap_frame()
-        http_api.send_frame(http_heatmap_user_image)
+        http_api.send_data(http_heatmap_user_image)
+    elif (key == "real_image"):
+        http_real_image = render_real_frame()
+        http_api.send_data(http_real_image)
+    elif (key == "areas"):
+        http_api.send_data(detect_areas)
+    elif (key == "fps"):
+        http_api.send_data({'fps': "%.1f" % frame_object.get_fps()})
 
