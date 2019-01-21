@@ -14,7 +14,6 @@ import base64
 main_window = 'Motion detector'
 
 def signal_handler(sig, frame):
-    http_callback_get_image("path", "body")
     print('\nExit..')
     sys.exit(0)
 
