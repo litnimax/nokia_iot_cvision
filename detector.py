@@ -158,35 +158,60 @@ class Mask(object):
         colormap_rgba[np.where((colormap_rgba == [128,0,0,255]).all(axis = 2))] = [0,0,0,0]
         return colormap_rgba
 
+class Http():
+    def __init__(self):
+        self.miso = Queue()
+        self.mosi = Queue()
 
+    def mosi(self):
+        return self.mosi
 
+    def miso(self):
+        return self.miso
 
-
-
-class http_api():
-    def get_image(path, body, miso, mosi):
-        miso.put("user_frame")
+    def get_frame(self, frametype):
+        self.miso.put(frametype)
         try:
-            frame = mosi.get(timeout=1)
+            return self.mosi.get(timeout=1)
         except:
             return b""
-        frame_jpg = cv2.imencode('.jpg', frame)[1]
-        frame_jpg_encoded = base64.b64encode(frame_jpg)
-        return frame_jpg_encoded
 
-    def get_area(path, body, miso, mosi):
+    def send_frame(self, frame):
+        self.mosi.put(frame)
+
+    def get_cmd(self):
+        try:
+            return self.miso.get_nowait()
+        except:
+            return ""
+
+    def callbacks_generate(self):
+        callbacks = {   '/get_user_image':          self.get_user_image,
+                        '/get_heatmap_image':       self.get_heatmap_image,
+                        '/get_area':                self.get_area}
+        return callbacks
+
+    def get_user_image(self, path, body):
+        frame = self.get_frame("user_frame")
+        return base64.b64encode(cv2.imencode('.jpg', frame)[1])
+
+    def get_heatmap_image(self, path, body):
+        frame = self.get_frame("heatmap_frame")
+        return base64.b64encode(cv2.imencode('.jpg', frame)[1])
+
+    def get_area(self, path, body):
         return "http_callback_get_area"
 
-miso = Queue()
-mosi = Queue()
 args = arg_init()
 signal.signal(signal.SIGINT, signal_handler)
 detect_areas = read_areas()
 
-callbacks = {'/get_image': http_api.get_image, '/get_area': http_api.get_area}
-server = http_api_server.server(args["port"], callbacks, miso, mosi)
 frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
 mask_object = Mask(args["width"], args["height"])
+http_api = Http()
+
+server = http_api_server.server(args["port"], http_api.callbacks_generate())
+
 Thread(target=frame_object.print_fps).start()
 
 print("Start main cycle...")
@@ -247,12 +272,11 @@ while(1):
 
     cv2.waitKey(1)
 
-    cmd = ""
-    try:
-        cmd = miso.get_nowait()
-    except:
-        continue
 
+
+    cmd = http_api.get_cmd()
     if (cmd == "user_frame"):
-        mosi.put(user_image)
+        http_api.send_frame(user_image)
+    elif (cmd == "heatmap_frame"):
+        http_api.send_frame(heatmap_user_image)
 
