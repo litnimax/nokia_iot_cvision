@@ -105,6 +105,15 @@ class Frame(object):
         self.current_frame = blur_gray_resized_frame
         return self.current_frame.copy()
 
+    def render_detect_areas(self, frame, areas):
+        for key, detect_area in areas.items():
+            cv2.polylines(frame, np.array([detect_area]), True, (110, 110, 110), 1)
+            detect_area_pl = Polygon(detect_area)
+            x = int(detect_area_pl.centroid.coords[0][0])
+            y = int(detect_area_pl.centroid.coords[0][1])
+            cv2.putText(frame, key[:13], (x-50,y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,127), 1)
+        return frame
+
     def get_color_frame(self):
         return self.current_color_frame.copy()
 
@@ -151,14 +160,6 @@ class Mask(object):
 
 
 
-def render_detect_areas(frame, areas):
-    for key, detect_area in areas.items():
-        cv2.polylines(frame, np.array([detect_area]), True, (110, 110, 110), 1)
-        detect_area_pl = Polygon(detect_area)
-        x = int(detect_area_pl.centroid.coords[0][0])
-        y = int(detect_area_pl.centroid.coords[0][1])
-        cv2.putText(frame, key[:13], (x-50,y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,127), 1)
-    return frame
 
 args = arg_init()
 signal.signal(signal.SIGINT, signal_handler)
@@ -201,7 +202,7 @@ while(1):
     overlay_frame = mask_object.get_mask()
     mask_object.update_accum()
 
-    overlay_frame = render_detect_areas(overlay_frame, detect_areas)
+    overlay_frame = frame_object.render_detect_areas(overlay_frame, detect_areas)
 
     for countour in countours:
         if cv2.contourArea(countour) < args["min_area"]:
