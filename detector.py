@@ -6,10 +6,19 @@ from imutils.video import VideoStream
 import argparse
 import imutils
 import json
+import time
 from shapely.geometry import Polygon
 import http_api_server
 import base64
 from multiprocessing import Process, Queue
+from threading import Thread
+
+if 'threading' in sys.modules:
+    del sys.modules['threading']
+import gevent
+import gevent.socket
+import gevent.monkey
+gevent.monkey.patch_all()
 
 main_window = 'Motion detector'
 
@@ -56,20 +65,40 @@ class Frame(object):
         self.current_frame = np.zeros((height,width,1), np.uint8)
         self.current_color_frame = np.zeros((height,width,3), np.uint8)
         self.prev_frame = self.current_frame.copy()
+        self.start_time = time.time()
+        self.frames_counter = 0
+        Thread(target=self.frames_clear).start()
         print("Create window...")
         cv2.namedWindow(main_window)
         cv2.moveWindow(main_window, 20, 20)
         cv2.imshow(main_window, self.get_frame())
         cv2.waitKey(1)
 
+    def frames_clear(self):
+        while True:
+            time.sleep(5)
+            self.start_time = time.time()
+            self.frames_counter = 0
+
     def __del__(self):
         print('Release cap..')
         self.capture_object.release()
         cv2.destroyAllWindows()
 
+    def get_fps(self):
+        fps = self.frames_counter / (time.time() - self.start_time)
+        return fps
+
+    def print_fps(self):
+        while True:
+            time.sleep(1)
+            print("%.1f" % self.get_fps())
+            #print(self.frames_counter)
+
     def get_frame(self):
         self.prev_frame = self.current_frame.copy()
         ret, frame = self.capture_object.read()
+        self.frames_counter += 1
         resized_frame = cv2.resize(frame, (self.width, self.height))
         self.current_color_frame = resized_frame.copy()
         gray_resized_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
@@ -114,7 +143,7 @@ class Mask(object):
         if (max_arr > 250):
             self.accum_image = np.divide(self.accum_image, 1.01)
             self.accum_image = self.accum_image.astype(np.uint8)
-        print(max_arr, self.accum_image.max())
+        #print(max_arr, self.accum_image.max())
 
     def get_heatmap(self):
         colormap = cv2.applyColorMap(self.accum_image, cv2.COLORMAP_JET)
@@ -159,6 +188,7 @@ mosi = Queue()
 
 callbacks = {'/get_image': http_api.get_image, '/get_area': http_api.get_area}
 server = http_api_server.server(args["port"], callbacks, miso, mosi)
+Thread(target=frame_object.print_fps).start()
 
 print("Start main cycle...")
 while(1):
@@ -195,6 +225,7 @@ while(1):
     overlay_frame = cv2.cvtColor(overlay_frame, cv2.COLOR_RGB2RGBA)
     overlay_frame[np.where((overlay_frame == [0,0,0,255]).all(axis = 2))] = [0,0,0,0]
 
+    cv2.putText(frame, "FPS: %.1f" % frame_object.get_fps(), (5,15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255,0,0), 1)
     user_image = cv2.addWeighted(frame, 1, overlay_frame, 0.5, 0)
     cv2.namedWindow(main_window)
     cv2.moveWindow(main_window, 20, 20)
