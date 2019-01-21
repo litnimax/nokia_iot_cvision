@@ -1,9 +1,11 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import multiprocessing
+from multiprocessing import Process, Queue
 
 class http_handler(BaseHTTPRequestHandler):
-    def __init__(self, callbacks, *args):
+    def __init__(self, callbacks, miso, mosi, *args):
         self.callbacks = callbacks
+        self.miso = miso
+        self.mosi = mosi
         BaseHTTPRequestHandler.__init__(self, *args)
 
     def do_POST(self):
@@ -11,7 +13,7 @@ class http_handler(BaseHTTPRequestHandler):
         body = self.rfile.read(content_length)
         path = self.path
         callback = self.callbacks.get(path)
-        message = callback(path, body)
+        message = callback(path, body, self.miso, self.mosi)
         self.send_response(200)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.end_headers()
@@ -19,12 +21,12 @@ class http_handler(BaseHTTPRequestHandler):
         return
 
 class server:
-    def __init__(self, port, callbacks):
+    def __init__(self, port, callbacks, miso, mosi):
         print("Init http api server...")
         def handler(*args):
-            http_handler(callbacks, *args)
+            http_handler(callbacks, miso, mosi, *args)
         self.httpd = HTTPServer(('', port), handler)
-        multiprocessing.Process(target=self.httpd.serve_forever).start()
+        Process(target=self.httpd.serve_forever).start()
 
     def __del__(self):
       print("Close http server...")

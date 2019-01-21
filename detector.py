@@ -9,7 +9,7 @@ import json
 from shapely.geometry import Polygon
 import http_api_server
 import base64
-
+from multiprocessing import Process, Queue
 
 main_window = 'Motion detector'
 
@@ -85,7 +85,7 @@ class Frame(object):
 
 
 class Mask(object):
-    def __init__(self):
+    def __init__(self, width, height):
         print("Init Mask object...")
         self.fgmask = []
 
@@ -122,18 +122,24 @@ frame_object = Frame(args.get("source", None), args["width"], args["height"], ar
 mask_object = Mask()
 
 class http_api():
-    def get_image(path, body):
-        frame = frame_object.get_prev_frame()
+    def get_image(path, body, miso, mosi):
+        miso.put("user_frame")
+        try:
+            frame = mosi.get(timeout=1)
+        except:
+            return b""
         frame_jpg = cv2.imencode('.jpg', frame)[1]
         frame_jpg_encoded = base64.b64encode(frame_jpg)
         return frame_jpg_encoded
 
-    def get_area(path, body):
+    def get_area(path, body, miso, mosi):
         return "http_callback_get_area"
 
+miso = Queue()
+mosi = Queue()
 
 callbacks = {'/get_image': http_api.get_image, '/get_area': http_api.get_area}
-server = http_api_server.server(args["port"], callbacks)
+server = http_api_server.server(args["port"], callbacks, miso, mosi)
 
 print("Start main cycle...")
 while(1):
@@ -174,4 +180,13 @@ while(1):
     cv2.moveWindow(main_window, 20, 20)
     cv2.imshow(main_window, user_image)
     cv2.waitKey(1)
+
+    cmd = ""
+    try:
+        cmd = miso.get_nowait()
+    except:
+        continue
+
+    if (cmd == "user_frame"):
+        mosi.put(user_image)
 
