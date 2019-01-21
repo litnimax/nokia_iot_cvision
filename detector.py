@@ -121,19 +121,18 @@ detect_areas = read_areas()
 frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
 mask_object = Mask()
 
-def http_callback_get_image(path, body):
-    frame = frame_object.get_prev_frame()
-    print(frame)
-    cv2.imwrite("test.jpg", frame)
-    frame_jpg = cv2.imencode('.jpg', frame)[1]
-    frame_jpg_encoded = base64.b64encode(frame_jpg)
-    return frame_jpg_encoded
+class http_api():
+    def get_image(path, body):
+        frame = frame_object.get_prev_frame()
+        frame_jpg = cv2.imencode('.jpg', frame)[1]
+        frame_jpg_encoded = base64.b64encode(frame_jpg)
+        return frame_jpg_encoded
 
-def http_callback_get_area(path, body):
-    return "http_callback_get_area"
+    def get_area(path, body):
+        return "http_callback_get_area"
 
-callbacks = {'/get_image': http_callback_get_image, '/get_area': http_callback_get_area}
 
+callbacks = {'/get_image': http_api.get_image, '/get_area': http_api.get_area}
 server = http_api_server.server(args["port"], callbacks)
 
 print("Start main cycle...")
