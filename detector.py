@@ -27,7 +27,7 @@ def arg_init():
     ap.add_argument("-m", "--min-area", type=int, default=100, help="minimum area size")
     ap.add_argument("-H", "--height", type=int, default=360, help="height")
     ap.add_argument("-W", "--width", type=int, default=640, help="width")
-    ap.add_argument("-b", "--blur", type=int, default=5, help="blur core")
+    ap.add_argument("-t", "--threshold", type=int, default=5, help="threshold level(low - max sensetive)")
     ap.add_argument("-a", "--areas", default="areas.json", help="areas file")
     ap.add_argument("-p", "--port", type=int, default=9001, help="http api port")
     ap.add_argument("-i", "--interface", action="store_true", help="interface")
@@ -46,7 +46,7 @@ def read_areas():
 
 
 class Frame(object):
-    def __init__(self, source, width, height, blur_core):
+    def __init__(self, source, width, height, threshold):
         print("Init capture object...")
         if (source is None):
             self.capture_object = cv2.VideoCapture(0)
@@ -55,7 +55,9 @@ class Frame(object):
         print("Init frame struct...")
         self.width = width
         self.height = height
-        self.blur_core = blur_core
+        if threshold % 2 == 0:
+            threshold += 1
+        self.blur_core = threshold
         self.current_frame = np.zeros((height,width,1), np.uint8)
         self.current_color_frame = np.zeros((height,width,3), np.uint8)
         self.prev_frame = self.current_frame.copy()
@@ -241,7 +243,7 @@ args = arg_init()
 signal.signal(signal.SIGINT, (lambda s,f: sys.exit(0)))
 detect_areas = read_areas()
 
-frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
+frame_object = Frame(args.get("source", None), args["width"], args["height"], args["threshold"])
 mask_object = Mask(args["width"], args["height"])
 http_api = Http()
 
