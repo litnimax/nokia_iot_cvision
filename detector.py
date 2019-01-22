@@ -196,7 +196,7 @@ def render_user_frame():
             continue
 
         (x, y, w, h) = cv2.boundingRect(countour)
-        countour_rect = [[x, y], [x+w, y], [x+w, y+h], [x, y+h]]
+        countour_rect = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
         cv2.polylines(overlay_frame, np.array([countour_rect]), True, (127, 255, 127), 2)
         cv2.polylines(overlay_frame, np.array([countour]), True, (127, 255, 127), 1)
 
@@ -237,7 +237,7 @@ def show_window(name, x, y, image):
 
 
 args = arg_init()
-signal.signal(signal.SIGINT, (lambda sig, frame: sys.exit(0)))
+signal.signal(signal.SIGINT, (lambda s,f: sys.exit(0)))
 detect_areas = read_areas()
 
 frame_object = Frame(args.get("source", None), args["width"], args["height"], args["blur"])
@@ -253,18 +253,12 @@ while(1):
     mask_object.update_accum()
 
     for countour in countours:
-        if cv2.contourArea(countour) < args["min_area"]:
-            continue
-
-        (x, y, w, h) = cv2.boundingRect(countour)
-        countour_rect = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
-
-        for key, detect_area in detect_areas.items():
-            detect_area_pl = Polygon(detect_area)
-            countour_area_pl = Polygon(countour_rect)
-            intersect = detect_area_pl.intersects(countour_area_pl)
-            if (intersect == True):
-                print("Intersect in armed area %s!" % key)
+        if cv2.contourArea(countour) > args["min_area"]:
+            (x, y, w, h) = cv2.boundingRect(countour)
+            countour_rect = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
+            for key, detect_area in detect_areas.items():
+                if (Polygon(detect_area).intersects(Polygon(countour_rect))):
+                    print("Intersect in armed area %s!" % key)
 
     #show_window('Motion detector', 20, 20, render_user_frame())
     #show_window('Heatmap', 20, 20+450, render_heatmap_frame())
