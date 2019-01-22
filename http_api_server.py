@@ -13,18 +13,21 @@ class http_handler(BaseHTTPRequestHandler):
             try:
                 callback = getattr(self.http_user_object, self.path[1:])
                 message = callback(self.path, body)
-                print("message", message)
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.end_headers()
                 if (message is not None):
                     self.wfile.write(message)
-            except TypeError:
+            except TypeError as ex:
                 self.send_response(500)
                 self.end_headers()
-                self.wfile.write(b"TypeError in callback(not 'b'?)")
+                self.wfile.write("TypeError in callback(not 'b', or bad args): {0} ({1})".format(type(ex).__name__, ex.args).encode())
+            except Exception as ex:
+                self.send_response(520)
+                self.end_headers()
+                self.wfile.write("Another error in callback: {0} ({1})".format(type(ex).__name__, ex.args).encode())
         else:
-            self.send_response(404)
+            self.send_response(400)
             self.end_headers()
             self.wfile.write(b"No valid function name(not 'set' or 'get'?)")
 
