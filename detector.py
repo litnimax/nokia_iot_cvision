@@ -130,6 +130,9 @@ class Mask(object):
         fgmask[np.where((fgmask == [127,127,127]).all(axis = 2))] = [0,0,225]
         return fgmask
 
+    def clear_accum(self):
+        self.accum_image = np.zeros((self.height, self.width), np.uint8)
+
     def update_accum(self):
         mask = self.fgmask.copy()
         mask[mask == 255] = 1
