@@ -27,12 +27,23 @@ class Http():
         except Exception:
             return b""
 
+    def send_data_by_key(self, datatype, data):
+        self.miso.put(datatype)
+        self.mosi.get(timeout=1)
+        self.miso.put(data)
+
     def send_data(self, data):
         self.mosi.put(data)
 
     def get_key(self):
         try:
             return self.miso.get_nowait()
+        except Exception:
+            return ""
+
+    def get_data(self):
+        try:
+            return self.miso.get(timeout=1)
         except Exception:
             return ""
 
@@ -51,6 +62,12 @@ class Http():
     def get_areas(self, path, body):
         areas = self.get_data_by_key("areas")
         return str(areas).encode()
+
+    def set_areas(self, path, body):
+        self.send_data_by_key("set_areas", body)
+
+    def set_size(self, path, body):
+        self.send_data_by_key("set_size", body)
 
     def get_fps(self, path, body):
         areas = self.get_data_by_key("fps")

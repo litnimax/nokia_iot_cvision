@@ -2,17 +2,16 @@ import cv2
 import numpy as np
 from shapely.geometry import Polygon
 
-
 class Render():
-    def __init__(self, mask_o, frame_o, detect_areas):
+    def __init__(self, mask_o, frame_o, settings_o):
         self.frame_o = frame_o
         self.mask_o = mask_o
-        self.detect_areas = detect_areas
+        self.settings_o = settings_o
 
     def render_user_frame(self):
         countours = self.mask_o.get_countours(self.frame_o.get_prev_frame(), self.frame_o.get_current_frame())
         overlay_frame = self.mask_o.get_mask()
-        overlay_frame = self.frame_o.render_detect_areas(overlay_frame, self.detect_areas)
+        overlay_frame = self.frame_o.render_detect_areas(overlay_frame, self.settings_o.get_areas())
         frame = cv2.cvtColor(self.frame_o.get_color_frame(), cv2.COLOR_RGB2RGBA)
 
         for countour in countours:
@@ -24,7 +23,7 @@ class Render():
             cv2.polylines(overlay_frame, np.array([countour_rect]), True, (127, 255, 127), 2)
             cv2.polylines(overlay_frame, np.array([countour]), True, (127, 255, 127), 1)
 
-            for key, detect_area in self.detect_areas.items():
+            for key, detect_area in self.settings_o.get_areas().items():
                 detect_area_pl = Polygon(detect_area)
                 countour_area_pl = Polygon(countour_rect)
                 intersect = detect_area_pl.intersects(countour_area_pl)

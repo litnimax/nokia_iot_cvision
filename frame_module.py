@@ -7,18 +7,15 @@ from shapely.geometry import Polygon
 
 
 class Frame(object):
-    def __init__(self, source, width, height, threshold):
+    def __init__(self, source, settings_o):
         print("Init capture object...")
         if (source is None):
             self.capture_o = cv2.VideoCapture(0)
         else:
             self.capture_o = cv2.VideoCapture(source)
         print("Init frame struct...")
-        self.width = width
-        self.height = height
-        if threshold % 2 == 0:
-            threshold += 1
-        self.blur_core = threshold
+        self.settings_o = settings_o
+        width, height = self.settings_o.get_size()
         self.current_frame = np.zeros((height, width, 1), np.uint8)
         self.current_color_frame = np.zeros((height, width, 3), np.uint8)
         self.prev_frame = np.zeros((height, width, 1), np.uint8)
@@ -48,10 +45,10 @@ class Frame(object):
         self.prev_frame = self.current_frame.copy()
         ret, frame = self.capture_o.read()
         self.frame_os_counter += 1
-        resized_frame = cv2.resize(frame, (self.width, self.height))
+        resized_frame = cv2.resize(frame, (self.settings_o.get_size()))
         self.current_color_frame = resized_frame.copy()
         gray_resized_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
-        blur_gray_resized_frame = cv2.GaussianBlur(gray_resized_frame, (self.blur_core, self.blur_core), 0)
+        blur_gray_resized_frame = cv2.GaussianBlur(gray_resized_frame, (self.settings_o.get_threshold(), self.settings_o.get_threshold()), 0)
         self.current_frame = blur_gray_resized_frame
 
     def render_detect_areas(self, frame, areas):

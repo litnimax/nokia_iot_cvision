@@ -13,6 +13,7 @@ from frame_module import Frame
 from http_module import Http
 from mask_module import Mask
 from render_module import Render
+from settings_module import Settings
 
 if 'threading' in sys.modules:
     del sys.modules['threading']
@@ -27,29 +28,22 @@ def arg_init():
     argumets.add_argument("-H", "--height", type=int, default=360, help="height")
     argumets.add_argument("-W", "--width", type=int, default=640, help="width")
     argumets.add_argument("-t", "--threshold", type=int, default=5, help="threshold level(low - max sensetive)")
-    argumets.add_argument("-a", "--areas", default="areas.json", help="areas file")
+    argumets.add_argument("-a", "--settings", default="settings.json", help="settings file")
     argumets.add_argument("-p", "--port", type=int, default=9001, help="http api port")
     argumets.add_argument("-i", "--interface", action="store_true", help="interface")
+    argumets.add_argument("-w", "--warnings", action="store_true", help="warnings")
     return vars(argumets.parse_args())
-
-
-def read_areas(areas_file):
-    with open(areas_file) as file:
-        areas = json.load(file)
-        if (len(areas) > 0):
-            print("Load %s areas" % len(areas))
-        return areas
 
 
 class main():
     def __init__(self):
         signal.signal(signal.SIGINT, (lambda s, f: sys.exit(0)))
         self.args = arg_init()
-        self.detect_areas = read_areas(self.args["areas"])
-        self.frame_o = Frame(self.args.get("source", None), self.args["width"], self.args["height"], self.args["threshold"])
-        self.mask_o = Mask(self.args["width"], self.args["height"], self.args["min_area"])
+        self.settings_o = Settings(self.args["settings"])
+        self.frame_o = Frame(self.args.get("source", None), self.settings_o)
+        self.mask_o = Mask(self.settings_o, self.args["min_area"])
         self.http = Http(self.args["port"])
-        self.render = Render(self.mask_o, self.frame_o, self.detect_areas)
+        self.render = Render(self.mask_o, self.frame_o, self.settings_o)
 
         print("Start main cycle...")
         while True:
@@ -64,9 +58,10 @@ class main():
             if cv2.contourArea(countour) > self.mask_o.get_min_area():
                 (x, y, w, h) = cv2.boundingRect(countour)
                 countour_rect = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
-                for key, detect_area in self.detect_areas.items():
-                    if (Polygon(detect_area).intersects(Polygon(countour_rect))):
-                        print("Intersect in armed area %s!" % key)
+                for key, detect_area in self.settings_o.get_areas().items():
+                    if Polygon(detect_area).intersects(Polygon(countour_rect)):
+                        if self.args["warnings"]:
+                            print("Intersect in armed area %s!" % key)
 
         if self.args["interface"]:
             self.frame_o.window('Motion detector', 20, 20, self.render.render_user_frame())
@@ -84,9 +79,21 @@ class main():
             http_real_image = self.render.render_real_frame()
             self.http.send_data(http_real_image)
         elif key == "areas":
-            self.http.send_data(self.detect_areas)
+            self.http.send_data(self.settings_o.get_areas())
         elif key == "fps":
             self.http.send_data({'fps': "%.1f" % self.frame_o.get_fps()})
+        elif key == "set_areas":
+            self.http.send_data("ok")
+            data = self.http.get_data()
+            data_decoded = json.loads(data.decode("utf-8"))
+            if (type(data_decoded).__name__ == 'dict'):
+                self.settings_o.set_areas(data_decoded)
+        elif key == "set_size":
+            self.http.send_data("ok")
+            data = self.http.get_data()
+            size = json.loads(data.decode("utf-8"))
+            if type(size['width']).__name__ == 'int' and type(size['height']).__name__ == 'int':
+                self.settings_o.set_size(size['width'], size['height'])
 
 
 if __name__ == "__main__":

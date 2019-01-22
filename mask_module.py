@@ -4,16 +4,19 @@ import numpy as np
 
 
 class Mask(object):
-    def __init__(self, width, height, min_area):
+    def __init__(self, settings_o, min_area):
         print("Init mask object...")
         self.fgmask = []
-        self.width = width
-        self.height = height
+        self.settings_o = settings_o
         self.min_area = min_area
-        self.accum_image = np.zeros((self.height, self.width), np.uint8)
+        width, height = self.settings_o.get_size()
+        self.accum_image = np.zeros((height, width), np.uint8)
 
     def get_countours(self, prev, current):
-        mask = cv2.absdiff(prev, current)
+        if prev.shape == current.shape:
+            mask = cv2.absdiff(prev, current)
+        else:
+            mask = cv2.absdiff(current, current)
         mask = cv2.threshold(mask, 25, 255, cv2.THRESH_BINARY)[1]
         self.fgmask = cv2.dilate(mask, None, iterations=2)
         countours = cv2.findContours(self.fgmask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -28,12 +31,16 @@ class Mask(object):
         return fgmask
 
     def clear_accum(self):
-        self.accum_image = np.zeros((self.height, self.width), np.uint8)
+        width, height = self.settings_o.get_size()
+        self.accum_image = np.zeros((height, width), np.uint8)
 
     def update_accum(self):
         mask = self.fgmask.copy()
         mask[mask == 255] = 1
-        self.accum_image = cv2.add(self.accum_image, mask)
+        if self.accum_image.shape == mask.shape:
+            self.accum_image = cv2.add(self.accum_image, mask)
+        else:
+            self.accum_image = mask
         max_arr = self.accum_image.max()
         if (max_arr > 250):
             self.accum_image = np.divide(self.accum_image, 1.01)
@@ -47,4 +54,4 @@ class Mask(object):
         return colormap_rgba
 
     def get_min_area(self):
-      return self.min_area
+        return self.min_area
