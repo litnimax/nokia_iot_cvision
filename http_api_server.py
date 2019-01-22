@@ -1,5 +1,5 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from multiprocessing import Process, Queue
+from multiprocessing import Process
 
 class http_handler(BaseHTTPRequestHandler):
     def __init__(self, http_user_object, *args):
@@ -21,11 +21,13 @@ class http_handler(BaseHTTPRequestHandler):
             except TypeError as ex:
                 self.send_response(500)
                 self.end_headers()
-                self.wfile.write("TypeError in callback(not 'b', or bad args): {0} ({1})".format(type(ex).__name__, ex.args).encode())
+                message = "TypeError in callback(not 'b', or bad args): {0} ({1})"
+                self.wfile.write(message.format(type(ex).__name__, ex.args).encode())
             except Exception as ex:
                 self.send_response(520)
                 self.end_headers()
-                self.wfile.write("Another error in callback: {0} ({1})".format(type(ex).__name__, ex.args).encode())
+                message = "Another error in callback: {0} ({1})"
+                self.wfile.write(message.format(type(ex).__name__, ex.args).encode())
         else:
             self.send_response(400)
             self.end_headers()
