@@ -10,7 +10,7 @@ class Settings():
             with open(self.settings_file) as file:
                 return json.load(file)
         except FileNotFoundError:
-            return {'areas': {}, 'threshold': 5, 'width': 640, 'height': 360}
+            return {'areas': {}, 'threshold': 5, 'width': 640, 'height': 360, 'min_area': 100}
 
     def write_settings_to_file(self):
         with open(self.settings_file, 'w') as outfile:
@@ -39,4 +39,11 @@ class Settings():
 
     def get_size(self):
         return self.settings['width'], self.settings['height']
+
+    def set_min_area(self, min_area):
+        self.settings['min_area'] = min_area
+        self.write_settings_to_file()
+
+    def get_min_area(self):
+        return self.settings['min_area']
 

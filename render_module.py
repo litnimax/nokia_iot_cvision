@@ -15,7 +15,7 @@ class Render():
         frame = cv2.cvtColor(self.frame_o.get_color_frame(), cv2.COLOR_RGB2RGBA)
 
         for countour in countours:
-            if cv2.contourArea(countour) < self.mask_o.get_min_area():
+            if cv2.contourArea(countour) < self.settings_o.get_min_area():
                 continue
 
             (x, y, w, h) = cv2.boundingRect(countour)
@@ -47,7 +47,7 @@ class Render():
         real_image = self.frame_o.get_current_frame()
         real_image = cv2.cvtColor(real_image, cv2.COLOR_GRAY2RGB)
         for countour in countours:
-            if cv2.contourArea(countour) < self.mask_o.get_min_area():
+            if cv2.contourArea(countour) < self.settings_o.get_min_area():
                 continue
             cv2.polylines(real_image, np.array([countour]), True, (127, 255, 127), 1)
         return real_image

@@ -4,11 +4,10 @@ import numpy as np
 
 
 class Mask(object):
-    def __init__(self, settings_o, min_area):
+    def __init__(self, settings_o):
         print("Init mask object...")
         self.fgmask = []
         self.settings_o = settings_o
-        self.min_area = min_area
         width, height = self.settings_o.get_size()
         self.accum_image = np.zeros((height, width), np.uint8)
 
@@ -52,6 +51,3 @@ class Mask(object):
         colormap_rgba = cv2.cvtColor(colormap, cv2.COLOR_RGB2RGBA)
         colormap_rgba[np.where((colormap_rgba == [128, 0, 0, 255]).all(axis=2))] = [0, 0, 0, 0]
         return colormap_rgba
-
-    def get_min_area(self):
-        return self.min_area

@@ -69,6 +69,9 @@ class Http():
     def set_size(self, path, body):
         self.send_data_by_key("set_size", body)
 
+    def set_min_area(self, path, body):
+        self.send_data_by_key("set_min_area", body)
+
     def get_fps(self, path, body):
         areas = self.get_data_by_key("fps")
         return str(areas).encode()

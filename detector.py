@@ -41,7 +41,7 @@ class main():
         self.args = arg_init()
         self.settings_o = Settings(self.args["settings"])
         self.frame_o = Frame(self.args.get("source", None), self.settings_o)
-        self.mask_o = Mask(self.settings_o, self.args["min_area"])
+        self.mask_o = Mask(self.settings_o)
         self.http = Http(self.args["port"])
         self.render = Render(self.mask_o, self.frame_o, self.settings_o)
 
