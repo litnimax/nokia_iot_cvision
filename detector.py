@@ -63,6 +63,7 @@ class Frame(object):
         self.prev_frame = np.zeros((height,width,1), np.uint8)
         self.start_time = time.time()
         self.frames_counter = 0
+        self.capture_frame()
         Thread(target=self.frames_clear).start()
 
     def frames_clear(self):
