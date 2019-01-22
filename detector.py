@@ -36,6 +36,21 @@ def arg_init():
     return vars(argumets.parse_args())
 
 
+def read_areas(areas_file):
+    with open(areas_file) as file:
+        areas = json.load(file)
+        if (len(areas) > 0):
+            print("Load %s areas" % len(areas))
+        return areas
+
+
+def window(name, x, y, image):
+    cv2.namedWindow(name)
+    cv2.moveWindow(name, x, y)
+    cv2.imshow(name, image)
+    cv2.waitKey(1)
+
+
 class Frame(object):
     def __init__(self, source, width, height, threshold):
         print("Init capture object...")
@@ -54,7 +69,7 @@ class Frame(object):
         self.prev_frame = np.zeros((height, width, 1), np.uint8)
         self.start_time = time.time()
         self.frame_os_counter = 0
-        self.capture_frame()
+        self.capture()
         Thread(target=self.frames_clear).start()
 
     def frames_clear(self):
@@ -68,11 +83,9 @@ class Frame(object):
         self.capture_o.release()
         cv2.destroyAllWindows()
 
-    def get_fps(self):
-        fps = self.frame_os_counter / (time.time() - self.start_time)
-        return fps
 
-    def capture_frame(self):
+
+    def capture(self):
         self.prev_frame = self.current_frame.copy()
         ret, frame = self.capture_o.read()
         self.frame_os_counter += 1
@@ -90,6 +103,9 @@ class Frame(object):
             y = int(detect_area_pl.centroid.coords[0][1])
             cv2.putText(frame, area_key[:13], (x-50, y), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 127), 1)
         return frame
+
+    def get_fps(self):
+        return self.frame_os_counter / (time.time() - self.start_time)
 
     def get_color_frame(self):
         return self.current_color_frame.copy()
@@ -185,23 +201,11 @@ class Http():
         areas = self.get_data_by_key("fps")
         return str(areas).encode()
 
-def read_areas(areas_file):
-    with open(areas_file) as file:
-        areas = json.load(file)
-        if (len(areas) > 0):
-            print("Load %s areas" % len(areas))
-        return areas
-
-def window(name, x, y, image):
-    cv2.namedWindow(name)
-    cv2.moveWindow(name, x, y)
-    cv2.imshow(name, image)
-    cv2.waitKey(1)
 
 class main():
     def __init__(self):
-        self.args = arg_init()
         signal.signal(signal.SIGINT, (lambda s, f: sys.exit(0)))
+        self.args = arg_init()
         self.detect_areas = read_areas(self.args["areas"])
         self.frame_o = Frame(self.args.get("source", None), self.args["width"], self.args["height"], self.args["threshold"])
         self.mask_o = Mask(self.args["width"], self.args["height"])
@@ -260,7 +264,7 @@ class main():
         return real_image
 
     def cycle(self):
-        self.frame_o.capture_frame()
+        self.frame_o.capture()
         countours = self.mask_o.get_countours(
             self.frame_o.get_prev_frame(), self.frame_o.get_current_frame())
         self.mask_o.update_accum()
