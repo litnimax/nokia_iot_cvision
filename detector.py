@@ -24,10 +24,6 @@ def arg_init():
     print("Init argparse...")
     argumets = argparse.ArgumentParser()
     argumets.add_argument("-c", "--source", help="video source")
-    argumets.add_argument("-m", "--min-area", type=int, default=100, help="minimum area size")
-    argumets.add_argument("-H", "--height", type=int, default=360, help="height")
-    argumets.add_argument("-W", "--width", type=int, default=640, help="width")
-    argumets.add_argument("-t", "--threshold", type=int, default=5, help="threshold level(low - max sensetive)")
     argumets.add_argument("-a", "--settings", default="settings.json", help="settings file")
     argumets.add_argument("-p", "--port", type=int, default=9001, help="http api port")
     argumets.add_argument("-i", "--interface", action="store_true", help="interface")
@@ -44,31 +40,18 @@ class main():
         self.mask_o = Mask(self.settings_o)
         self.http = Http(self.args["port"])
         self.render = Render(self.mask_o, self.frame_o, self.settings_o)
-
-        print("Start main cycle...")
-        while True:
-            self.cycle()
+        self.cycle()
 
     def cycle(self):
-        self.frame_o.capture()
-        countours = self.mask_o.get_countours(self.frame_o.get_prev_frame(), self.frame_o.get_current_frame())
-        self.mask_o.update_accum()
+        print("Start main cycle...")
+        while True:
+            self.detect()
+            key = self.http.get_key()
+            self.http_msg_catch(key)
+            if self.args["interface"]:
+                self.interface_show()
 
-        for countour in countours:
-            if cv2.contourArea(countour) > self.mask_o.get_min_area():
-                (x, y, w, h) = cv2.boundingRect(countour)
-                countour_rect = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
-                for key, detect_area in self.settings_o.get_areas().items():
-                    if Polygon(detect_area).intersects(Polygon(countour_rect)):
-                        if self.args["warnings"]:
-                            print("Intersect in armed area %s!" % key)
-
-        if self.args["interface"]:
-            self.frame_o.window('Motion detector', 20, 20, self.render.render_user_frame())
-            self.frame_o.window('Heatmap', 20, 20 + 450, self.render.render_heatmap_frame())
-            self.frame_o.window('Real image', 20 + 700, 20 + 450, self.render.render_real_frame())
-
-        key = self.http.get_key()
+    def http_msg_catch(self, key):
         if key == "user_image":
             http_user_image = self.render.render_user_frame()
             self.http.send_data(http_user_image)
@@ -91,9 +74,34 @@ class main():
         elif key == "set_size":
             self.http.send_data("ok")
             data = self.http.get_data()
-            size = json.loads(data.decode("utf-8"))
-            if type(size['width']).__name__ == 'int' and type(size['height']).__name__ == 'int':
-                self.settings_o.set_size(size['width'], size['height'])
+            data_decoded = json.loads(data.decode("utf-8"))
+            if type(data_decoded['width']).__name__ == 'int' and type(data_decoded['height']).__name__ == 'int':
+                self.settings_o.set_size(data_decoded['width'], data_decoded['height'])
+        elif key == "set_min_area":
+            self.http.send_data("ok")
+            data = self.http.get_data()
+            data_decoded = json.loads(data.decode("utf-8"))
+            if type(data_decoded['min_area']).__name__ == 'int':
+                self.settings_o.set_min_area(data_decoded['min_area'])
+
+    def detect(self):
+        self.frame_o.capture()
+        countours = self.mask_o.get_countours(self.frame_o.get_prev_frame(), self.frame_o.get_current_frame())
+        self.mask_o.update_accum()
+
+        for countour in countours:
+            if cv2.contourArea(countour) > self.settings_o.get_min_area():
+                (x, y, w, h) = cv2.boundingRect(countour)
+                countour_rect = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
+                for key, detect_area in self.settings_o.get_areas().items():
+                    if Polygon(detect_area).intersects(Polygon(countour_rect)):
+                        if self.args["warnings"]:
+                            print("Intersect in armed area %s!" % key)
+
+    def interface_show(self):
+        self.frame_o.window('Motion detector', 20, 20, self.render.render_user_frame())
+        self.frame_o.window('Heatmap', 20, 20 + 450, self.render.render_heatmap_frame())
+        self.frame_o.window('Real image', 20 + 700, 20 + 450, self.render.render_real_frame())
 
 
 if __name__ == "__main__":
