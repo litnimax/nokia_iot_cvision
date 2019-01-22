@@ -1,0 +1,12 @@
+{
+  "python.linting.pylintArgs": [
+    "--extension-pkg-whitelist=cv2",
+    "--disable=W0703",
+    "--disable=C0103",
+    "--disable=C0301",
+    "--disable=W0613"
+  ],
+  "python.formatting.autopep8Args": [
+    "--max-line-length=200"
+  ]
+}
