@@ -165,14 +165,6 @@ class Http():
         except:
             return ""
 
-    def callbacks_generate(self):
-        callbacks = {   '/get_user_image':          self.get_user_image,
-                        '/get_heatmap_image':       self.get_heatmap_image,
-                        '/get_real_image':          self.get_real_image,
-                        '/get_fps':                 self.get_fps,
-                        '/get_areas':               self.get_areas}
-        return callbacks
-
     def get_user_image(self, path, body):
         frame = self.get_data_by_key("user_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
@@ -252,7 +244,7 @@ frame_object = Frame(args.get("source", None), args["width"], args["height"], ar
 mask_object = Mask(args["width"], args["height"])
 http_api = Http()
 
-server = http_api_server.server(args["port"], http_api.callbacks_generate())
+server = http_api_server.server(args["port"], http_api)
 
 print("Start main cycle...")
 while(1):
