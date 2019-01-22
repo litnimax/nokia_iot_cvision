@@ -60,7 +60,7 @@ class Frame(object):
         self.blur_core = threshold
         self.current_frame = np.zeros((height,width,1), np.uint8)
         self.current_color_frame = np.zeros((height,width,3), np.uint8)
-        self.prev_frame = self.current_frame.copy()
+        self.prev_frame = np.zeros((height,width,1), np.uint8)
         self.start_time = time.time()
         self.frames_counter = 0
         Thread(target=self.frames_clear).start()
@@ -113,7 +113,9 @@ class Mask(object):
     def __init__(self, width, height):
         print("Init mask object...")
         self.fgmask = []
-        self.accum_image = np.zeros((height,width), np.uint8)
+        self.width = width
+        self.height = height
+        self.accum_image = np.zeros((self.height, self.width), np.uint8)
 
     def get_countours(self, prev, current):
         mask = cv2.absdiff(prev, current)
