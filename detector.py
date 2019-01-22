@@ -30,6 +30,7 @@ def arg_init():
     ap.add_argument("-b", "--blur", type=int, default=5, help="blur core")
     ap.add_argument("-a", "--areas", default="areas.json", help="areas file")
     ap.add_argument("-p", "--port", type=int, default=9001, help="http api port")
+    ap.add_argument("-i", "--interface", action="store_true", help="interface")
     return vars(ap.parse_args())
 
 
@@ -260,9 +261,10 @@ while(1):
                 if (Polygon(detect_area).intersects(Polygon(countour_rect))):
                     print("Intersect in armed area %s!" % key)
 
-    #show_window('Motion detector', 20, 20, render_user_frame())
-    #show_window('Heatmap', 20, 20+450, render_heatmap_frame())
-    #show_window('Real image', 20+700, 20+450, render_real_frame())
+    if (args["interface"]):
+        show_window('Motion detector', 20, 20, render_user_frame())
+        show_window('Heatmap', 20, 20+450, render_heatmap_frame())
+        show_window('Real image', 20+700, 20+450, render_real_frame())
 
     key = http_api.get_key()
     if (key == "user_image"):
