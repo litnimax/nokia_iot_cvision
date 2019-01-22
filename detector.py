@@ -154,7 +154,7 @@ class Http():
         self.miso.put(frametype)
         try:
             return self.mosi.get(timeout=1)
-        except:
+        except Exception:
             return b""
 
     def send_data(self, data):
@@ -163,7 +163,7 @@ class Http():
     def get_key(self):
         try:
             return self.miso.get_nowait()
-        except:
+        except Exception:
             return ""
 
     def get_user_image(self, path, body):
