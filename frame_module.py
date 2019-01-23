@@ -47,6 +47,9 @@ class Frame(object):
     def capture(self):
         self.prev_frame = self.current_frame.copy()
         ret, frame = self.capture_o.read()
+        if not ret:
+            print("No capture frame.")
+            frame = self.prev_frame.copy()
         self.frame_os_counter += 1
         resized_frame = cv2.resize(frame, self.settings_o.get_size("reverse"))
         self.current_color_frame = resized_frame.copy()
