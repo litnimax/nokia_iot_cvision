@@ -37,8 +37,11 @@ class Settings():
         self.settings['height'] = height
         self.write_settings_to_file()
 
-    def get_size(self):
-        return self.settings['width'], self.settings['height']
+    def get_size(self, reverse=False):
+        if reverse:
+            return self.settings['width'], self.settings['height']
+        else:
+            return self.settings['height'], self.settings['width']
 
     def set_min_area(self, min_area):
         self.settings['min_area'] = min_area

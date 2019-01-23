@@ -18,7 +18,7 @@ class Frame(object):
             self.capture_o = cv2.VideoCapture(source)
         print("Init frame struct...")
         self.settings_o = settings_o
-        width, height = self.settings_o.get_size()
+        height, width = self.settings_o.get_size()
         self.current_frame = np.zeros((height, width, 1), np.uint8)
         self.current_color_frame = np.zeros((height, width, 3), np.uint8)
         self.prev_frame = np.zeros((height, width, 1), np.uint8)
@@ -48,7 +48,7 @@ class Frame(object):
         self.prev_frame = self.current_frame.copy()
         ret, frame = self.capture_o.read()
         self.frame_os_counter += 1
-        resized_frame = cv2.resize(frame, (self.settings_o.get_size()))
+        resized_frame = cv2.resize(frame, self.settings_o.get_size("reverse"))
         self.current_color_frame = resized_frame.copy()
         gray_resized_frame = cv2.cvtColor(resized_frame, cv2.COLOR_BGR2GRAY)
         blur_gray_resized_frame = cv2.GaussianBlur(gray_resized_frame, (self.settings_o.get_threshold(), self.settings_o.get_threshold()), 0)

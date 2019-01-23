@@ -8,8 +8,10 @@ class Mask(object):
         print("Init mask object...")
         self.fgmask = []
         self.settings_o = settings_o
-        width, height = self.settings_o.get_size()
-        self.accum_image = np.zeros((height, width), np.uint8)
+        self.accum_image = np.zeros(self.settings_o.get_size(), np.uint32)
+
+    def clear_accum(self):
+        self.accum_image = np.zeros(self.settings_o.get_size(), np.uint32)
 
     def get_countours(self, prev, current):
         if prev.shape == current.shape:
@@ -28,10 +30,6 @@ class Mask(object):
         fgmask[np.where((fgmask == [255, 255, 255]).all(axis=2))] = [0, 0, 225]
         fgmask[np.where((fgmask == [127, 127, 127]).all(axis=2))] = [0, 0, 225]
         return fgmask
-
-    def clear_accum(self):
-        width, height = self.settings_o.get_size()
-        self.accum_image = np.zeros((height, width), np.uint8)
 
     def update_accum(self):
         mask = self.fgmask.copy()
