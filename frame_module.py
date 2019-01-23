@@ -8,7 +8,10 @@ from shapely.geometry import Polygon
 
 class Frame(object):
     def __init__(self, source, settings_o):
-        print("Init capture object...")
+        source_text = "internal camera"
+        if (source is not None):
+            source_text = source
+        print("Init capture object, source is: {}".format(source_text))
         if (source is None):
             self.capture_o = cv2.VideoCapture(0)
         else:
