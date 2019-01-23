@@ -9,7 +9,7 @@ import uuid
 polygons = {}
 
 ap = argparse.ArgumentParser()
-ap.add_argument("-v", "--video", help="video type")
+ap.add_argument("-s", "--source", help="video source")
 ap.add_argument("-H", "--height", type=int, default=360, help="height")
 ap.add_argument("-W", "--width", type=int, default=640, help="width")
 args = vars(ap.parse_args())
@@ -23,10 +23,10 @@ def signal_handler(sig, frame):
 
 signal.signal(signal.SIGINT, signal_handler)
 
-if args.get("video", None) is None:
+if args.get("source", None) is None:
 	cap = cv2.VideoCapture(0)
 else:
-	cap = cv2.VideoCapture(args["video"])
+	cap = cv2.VideoCapture(args["source"])
 # ============================================================================
 
 FINAL_LINE_COLOR = (127, 255, 127)
