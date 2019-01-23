@@ -35,17 +35,21 @@ class Mask(object):
         mask = self.fgmask.copy()
         mask[mask == 255] = 1
         if self.accum_image.shape == mask.shape:
-            self.accum_image = cv2.add(self.accum_image, mask)
+            self.accum_image = self.accum_image + mask
         else:
-            self.accum_image = mask
-        max_arr = self.accum_image.max()
-        if (max_arr > 250):
-            self.accum_image = np.divide(self.accum_image, 1.01)
-            self.accum_image = self.accum_image.astype(np.uint8)
-        #print(max_arr, self.accum_image.max())
+            self.clear_accum()
 
     def get_heatmap(self):
-        colormap = cv2.applyColorMap(self.accum_image, cv2.COLORMAP_JET)
+        max_arr = self.accum_image.max()
+        if (max_arr > 4294967295-10):
+            self.accum_image = np.divide(self.accum_image, 1.01)
+            self.accum_image = self.accum_image.astype(np.uint8)
+
+        temp_accum_image = self.accum_image.copy()
+        divider = (max_arr+1)/254
+        temp_accum_image = temp_accum_image/divider
+        temp_accum_image = temp_accum_image.astype(np.uint8)
+        colormap = cv2.applyColorMap(temp_accum_image, cv2.COLORMAP_JET)
         colormap_rgba = cv2.cvtColor(colormap, cv2.COLOR_RGB2RGBA)
         colormap_rgba[np.where((colormap_rgba == [128, 0, 0, 255]).all(axis=2))] = [0, 0, 0, 0]
         return colormap_rgba
