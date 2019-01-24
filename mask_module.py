@@ -8,7 +8,17 @@ class Mask(object):
         print("Init mask object...")
         self.fgmask = []
         self.settings_o = settings_o
-        self.accum_image = np.zeros(self.settings_o.get_size(), np.uint32)
+        try:
+            self.accum_image = np.load("heatmap.npy")
+            print("Heatmap loaded")
+        except Exception as ex:
+            print("No load heatmap, create new")
+            self.accum_image = np.zeros(self.settings_o.get_size(), np.uint32)
+
+    def __del__(self):
+        print("Save heatmap...")
+        np.save("heatmap", self.accum_image)
+
 
     def clear_accum(self):
         self.accum_image = np.zeros(self.settings_o.get_size(), np.uint32)
