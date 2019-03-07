@@ -1,4 +1,5 @@
 import base64
+import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from multiprocessing import Process, Queue
 
@@ -47,21 +48,21 @@ class Http():
         except Exception:
             return ""
 
-    def get_user_image(self, path, body):
+    def get_user_image(self, path):
         frame = self.get_data_by_key("user_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
 
-    def get_heatmap_image(self, path, body):
+    def get_heatmap_image(self, path):
         frame = self.get_data_by_key("heatmap_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
 
-    def get_real_image(self, path, body):
+    def get_real_image(self, path):
         frame = self.get_data_by_key("real_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
 
-    def get_areas(self, path, body):
+    def get_areas(self, path):
         areas = self.get_data_by_key("areas")
-        return str(areas).encode()
+        return json.dumps(areas).encode()
 
     def set_areas(self, path, body):
         self.send_data_by_key("set_areas", body)
@@ -72,9 +73,9 @@ class Http():
     def set_min_area(self, path, body):
         self.send_data_by_key("set_min_area", body)
 
-    def get_fps(self, path, body):
-        areas = self.get_data_by_key("fps")
-        return str(areas).encode()
+    def get_fps(self, path):
+        fps = self.get_data_by_key("fps")
+        return json.dumps(fps).encode()
 
 
 class http_handler(BaseHTTPRequestHandler):
@@ -82,10 +83,21 @@ class http_handler(BaseHTTPRequestHandler):
         self.http_user_object = http_user_object
         BaseHTTPRequestHandler.__init__(self, *args)
 
+    def end_headers (self):
+            self.send_header('Access-Control-Allow-Origin', '*')
+            BaseHTTPRequestHandler.end_headers(self)
+
+    def do_OPTIONS(self):
+        self.send_response(200, "ok")
+        self.send_header('Access-Control-Allow-Methods', 'GET, OPTIONS, POST')
+        self.send_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
+
     def do_POST(self):
         content_length = int(self.headers['Content-Length'])
         body = self.rfile.read(content_length)
-        if (self.path[1:5] == "get_" or self.path[1:5] == "set_"):
+        if (self.path[1:5] == "set_"):
             try:
                 callback = getattr(self.http_user_object, self.path[1:])
                 message = callback(self.path, body)
@@ -110,3 +122,30 @@ class http_handler(BaseHTTPRequestHandler):
             self.wfile.write(b"No valid function name(not 'set' or 'get'?)")
 
         return
+
+    def do_GET(self):
+            if (self.path[1:5] == "get_"):
+                try:
+                    callback = getattr(self.http_user_object, self.path[1:])
+                    message = callback(self.path)
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'application/json; charset=utf-8')
+                    self.end_headers()
+                    if (message is not None):
+                        self.wfile.write(message)
+                except TypeError as ex:
+                    self.send_response(500)
+                    self.end_headers()
+                    message = "TypeError in callback(not 'b', or bad args): {0} ({1})"
+                    self.wfile.write(message.format(type(ex).__name__, ex.args).encode())
+                except Exception as ex:
+                    self.send_response(520)
+                    self.end_headers()
+                    message = "Another error in callback: {0} ({1})"
+                    self.wfile.write(message.format(type(ex).__name__, ex.args).encode())
+            else:
+                self.send_response(400)
+                self.end_headers()
+                self.wfile.write(b"No valid function name(not 'set' or 'get'?)")
+
+            return
