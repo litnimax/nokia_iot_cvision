@@ -62,3 +62,44 @@ Traceback (most recent call last):
   File "/usr/local/lib/python3.7/site-packages/gevent/_socket3.py", line 439, in send
     return _socket.socket.send(self._sock, data, flags)
 BrokenPipeError: [Errno 32] Broken pipe
+
+Exception happened during processing of request from ('127.0.0.1', 62024)
+Traceback (most recent call last):
+  File "/Users/matrix/PhpstormProjects/nokia_iot_cvision/http_module.py", line 130, in do_GET
+    message = callback(self.path)
+  File "/Users/matrix/PhpstormProjects/nokia_iot_cvision/http_module.py", line 57, in get_heatmap_image
+    return base64.b64encode(cv2.imencode('.jpg', frame)[1])
+TypeError: Expected cv::UMat for argument 'img'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/Cellar/python/3.7.2_2/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socketserver.py", line 316, in _handle_request_noblock
+    self.process_request(request, client_address)
+  File "/usr/local/Cellar/python/3.7.2_2/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socketserver.py", line 347, in process_request
+    self.finish_request(request, client_address)
+  File "/usr/local/Cellar/python/3.7.2_2/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socketserver.py", line 360, in finish_request
+    self.RequestHandlerClass(request, client_address, self)
+  File "/Users/matrix/PhpstormProjects/nokia_iot_cvision/http_module.py", line 16, in handler
+    http_handler(self, *args)
+  File "/Users/matrix/PhpstormProjects/nokia_iot_cvision/http_module.py", line 84, in __init__
+    BaseHTTPRequestHandler.__init__(self, *args)
+  File "/usr/local/Cellar/python/3.7.2_2/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socketserver.py", line 720, in __init__
+    self.handle()
+  File "/usr/local/Cellar/python/3.7.2_2/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/server.py", line 426, in handle
+    self.handle_one_request()
+  File "/usr/local/Cellar/python/3.7.2_2/Frameworks/Python.framework/Versions/3.7/lib/python3.7/http/server.py", line 414, in handle_one_request
+    method()
+  File "/Users/matrix/PhpstormProjects/nokia_iot_cvision/http_module.py", line 140, in do_GET
+    self.wfile.write(message.format(type(ex).__name__, ex.args).encode())
+  File "/usr/local/Cellar/python/3.7.2_2/Frameworks/Python.framework/Versions/3.7/lib/python3.7/socketserver.py", line 799, in write
+    self._sock.sendall(b)
+  File "/usr/local/lib/python3.7/site-packages/gevent/_socket3.py", line 458, in sendall
+    return _socketcommon._sendall(self, data_memory, flags)
+  File "/usr/local/lib/python3.7/site-packages/gevent/_socketcommon.py", line 374, in _sendall
+    timeleft = __send_chunk(socket, chunk, flags, timeleft, end)
+  File "/usr/local/lib/python3.7/site-packages/gevent/_socketcommon.py", line 303, in __send_chunk
+    data_sent += socket.send(chunk, flags)
+  File "/usr/local/lib/python3.7/site-packages/gevent/_socket3.py", line 439, in send
+    return _socket.socket.send(self._sock, data, flags)
+BrokenPipeError: [Errno 32] Broken pipe
