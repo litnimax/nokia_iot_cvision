@@ -49,19 +49,19 @@ class Http():
             return ""
 
     def get_user_image(self, path):
-        frame = self.get_data_by_key("user_image")
+        frame = self.get_data_by_key("get_user_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
 
     def get_heatmap_image(self, path):
-        frame = self.get_data_by_key("heatmap_image")
+        frame = self.get_data_by_key("get_heatmap_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
 
     def get_real_image(self, path):
-        frame = self.get_data_by_key("real_image")
+        frame = self.get_data_by_key("get_real_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
 
     def get_areas(self, path):
-        areas = self.get_data_by_key("areas")
+        areas = self.get_data_by_key("get_areas")
         return json.dumps(areas).encode()
 
     def set_areas(self, path, body):
@@ -74,7 +74,7 @@ class Http():
         self.send_data_by_key("set_min_area", body)
 
     def get_fps(self, path):
-        fps = self.get_data_by_key("fps")
+        fps = self.get_data_by_key("get_fps")
         return json.dumps(fps).encode()
 
 

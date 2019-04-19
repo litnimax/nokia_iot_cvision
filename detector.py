@@ -52,18 +52,18 @@ class main():
                 self.interface_show()
 
     def http_msg_catch(self, key):
-        if key == "user_image":
+        if key == "get_user_image":
             http_user_image = self.render.render_user_frame()
             self.http.send_data(http_user_image)
-        elif key == "heatmap_image":
+        elif key == "get_heatmap_image":
             http_heatmap_user_image = self.render.render_heatmap_frame()
             self.http.send_data(http_heatmap_user_image)
-        elif key == "real_image":
+        elif key == "get_real_image":
             http_real_image = self.render.render_real_frame()
             self.http.send_data(http_real_image)
-        elif key == "areas":
+        elif key == "get_areas":
             self.http.send_data(self.settings_o.get_areas())
-        elif key == "fps":
+        elif key == "get_fps":
             self.http.send_data({'fps': "%.1f" % self.frame_o.get_fps()})
         elif key == "set_areas":
             self.http.send_data("ok")
