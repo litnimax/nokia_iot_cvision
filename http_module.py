@@ -60,6 +60,7 @@ class Http():
         frame = self.get_data_by_key("get_real_image")
         return base64.b64encode(cv2.imencode('.jpg', frame)[1])
 
+
     def get_areas(self, path):
         areas = self.get_data_by_key("get_areas")
         return json.dumps(areas).encode()
@@ -67,8 +68,11 @@ class Http():
     def set_areas(self, path, body):
         self.send_data_by_key("set_areas", body)
 
+
+
     def set_size(self, path, body):
         self.send_data_by_key("set_size", body)
+
 
     def set_min_area(self, path, body):
         self.send_data_by_key("set_min_area", body)
@@ -76,6 +80,8 @@ class Http():
     def get_min_area(self, path):
         min_area = self.get_data_by_key("get_min_area")
         return json.dumps(min_area).encode()
+
+
     def get_fps(self, path):
         fps = self.get_data_by_key("get_fps")
         return json.dumps(fps).encode()

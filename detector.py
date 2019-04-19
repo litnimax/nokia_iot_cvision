@@ -77,6 +77,7 @@ class main():
             data_decoded = json.loads(data.decode("utf-8"))
             if type(data_decoded['width']).__name__ == 'int' and type(data_decoded['height']).__name__ == 'int':
                 self.settings_o.set_size(data_decoded['width'], data_decoded['height'])
+
         elif key == "set_min_area":
             self.http.send_data("ok")
             data = self.http.get_data()
