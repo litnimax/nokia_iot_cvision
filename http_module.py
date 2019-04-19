@@ -82,6 +82,14 @@ class Http():
         return json.dumps(min_area).encode()
 
 
+    def set_threshold(self, path, body):
+        self.send_data_by_key("set_threshold", body)
+
+    def get_threshold(self, path):
+        threshold = self.get_data_by_key("get_threshold")
+        return json.dumps(threshold).encode()
+
+
     def get_fps(self, path):
         fps = self.get_data_by_key("get_fps")
         return json.dumps(fps).encode()

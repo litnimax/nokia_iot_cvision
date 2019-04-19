@@ -87,6 +87,15 @@ class main():
         elif key == "get_min_area":
             self.http.send_data({'min_area': self.settings_o.get_min_area()})
 
+        elif key == "set_threshold":
+            self.http.send_data("ok")
+            data = self.http.get_data()
+            data_decoded = json.loads(data.decode("utf-8"))
+            if type(data_decoded['threshold']).__name__ == 'int':
+                self.settings_o.set_threshold(data_decoded['threshold'])
+        elif key == "get_threshold":
+            self.http.send_data({'threshold': self.settings_o.get_threshold()})
+
     def detect(self):
         self.frame_o.capture()
         countours = self.mask_o.get_countours(self.frame_o.get_prev_frame(), self.frame_o.get_current_frame())
