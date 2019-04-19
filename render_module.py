@@ -32,7 +32,7 @@ class Render():
 
         overlay_frame = cv2.cvtColor(overlay_frame, cv2.COLOR_RGB2RGBA)
         overlay_frame[np.where((overlay_frame == [0, 0, 0, 255]).all(axis=2))] = [0, 0, 0, 0]
-        cv2.putText(frame, "FPS: %.1f" % self.frame_o.get_fps(), (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+        #cv2.putText(frame, "FPS: %.1f" % self.frame_o.get_fps(), (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
         user_image = cv2.addWeighted(frame, 1, overlay_frame, 0.5, 0)
         return user_image
 
