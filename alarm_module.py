@@ -14,7 +14,7 @@ class Alarm(object):
         alarms_len = len(self.alarms)
         if (alarms_len > self.history):
             self.alarms.pop(0)
-        alarm_event = {"key": zone_key, "epoch": int(time.time())}
+        alarm_event = {"key": zone_key, "epoch": int(time.time()), "type": "motion"}
         self.alarms.append(alarm_event)
 
     def get_alarms_list(self):
