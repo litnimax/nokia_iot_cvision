@@ -14,6 +14,7 @@ from http_module import Http
 from mask_module import Mask
 from render_module import Render
 from settings_module import Settings
+from alarm_module import Alarm
 
 if 'threading' in sys.modules:
     del sys.modules['threading']
@@ -27,7 +28,6 @@ def arg_init():
     argumets.add_argument("-a", "--settings", default="settings.json", help="settings file")
     argumets.add_argument("-p", "--port", type=int, default=9001, help="http api port")
     argumets.add_argument("-i", "--interface", action="store_true", help="interface")
-    argumets.add_argument("-w", "--warnings", action="store_true", help="warnings")
     return vars(argumets.parse_args())
 
 
@@ -39,6 +39,7 @@ class main():
         self.frame_o = Frame(self.args.get("source", None), self.settings_o)
         self.mask_o = Mask(self.settings_o)
         self.http = Http(self.args["port"])
+        self.alarm = Alarm(10)
         self.render = Render(self.mask_o, self.frame_o, self.settings_o)
         self.cycle()
 
@@ -96,6 +97,10 @@ class main():
         elif key == "get_threshold":
             self.http.send_data({'threshold': self.settings_o.get_threshold()})
 
+        elif key == "get_alarms":
+            self.http.send_data({'alarms': self.alarm.get_alarms_list()})
+
+
     def detect(self):
         self.frame_o.capture()
         countours = self.mask_o.get_countours(self.frame_o.get_prev_frame(), self.frame_o.get_current_frame())
@@ -107,8 +112,7 @@ class main():
                 countour_rect = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]
                 for key, detect_area in self.settings_o.get_areas().items():
                     if Polygon(detect_area).intersects(Polygon(countour_rect)):
-                        if self.args["warnings"]:
-                            print("Intersect in armed area %s!" % key)
+                        self.alarm.update(key)
 
     def interface_show(self):
         self.frame_o.window('Motion detector', 20, 20, self.render.render_user_frame())

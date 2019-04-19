@@ -94,6 +94,10 @@ class Http():
         fps = self.get_data_by_key("get_fps")
         return json.dumps(fps).encode()
 
+    def get_alarms(self, path):
+        alarms = self.get_data_by_key("get_alarms")
+        return json.dumps(alarms).encode()
+
 
 class http_handler(BaseHTTPRequestHandler):
     def __init__(self, http_user_object, *args):
