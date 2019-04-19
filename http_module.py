@@ -73,6 +73,9 @@ class Http():
     def set_min_area(self, path, body):
         self.send_data_by_key("set_min_area", body)
 
+    def get_min_area(self, path):
+        min_area = self.get_data_by_key("get_min_area")
+        return json.dumps(min_area).encode()
     def get_fps(self, path):
         fps = self.get_data_by_key("get_fps")
         return json.dumps(fps).encode()

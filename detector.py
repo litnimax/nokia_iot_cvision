@@ -83,6 +83,8 @@ class main():
             data_decoded = json.loads(data.decode("utf-8"))
             if type(data_decoded['min_area']).__name__ == 'int':
                 self.settings_o.set_min_area(data_decoded['min_area'])
+        elif key == "get_min_area":
+            self.http.send_data({'min_area': self.settings_o.get_min_area()})
 
     def detect(self):
         self.frame_o.capture()
