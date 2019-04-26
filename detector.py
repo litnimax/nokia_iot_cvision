@@ -25,7 +25,7 @@ def arg_init():
     print("Init argparse...")
     argumets = argparse.ArgumentParser()
     argumets.add_argument("-c", "--source", help="video source")
-    argumets.add_argument("-a", "--settings", default="settings.json", help="settings file")
+    argumets.add_argument("-a", "--settings", default="data/settings.json", help="settings file")
     argumets.add_argument("-p", "--port", type=int, default=9001, help="http api port")
     argumets.add_argument("-i", "--interface", action="store_true", help="interface")
     return vars(argumets.parse_args())

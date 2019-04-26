@@ -9,7 +9,7 @@ class Mask(object):
         self.fgmask = []
         self.settings_o = settings_o
         try:
-            self.accum_image = np.load("heatmap.npy")
+            self.accum_image = np.load("data/heatmap.npy")
             print("Heatmap loaded")
         except Exception as ex:
             print("No load heatmap, create new")
@@ -17,7 +17,7 @@ class Mask(object):
 
     def __del__(self):
         print("Save heatmap...")
-        np.save("heatmap", self.accum_image)
+        np.save("data/heatmap", self.accum_image)
 
 
     def clear_accum(self):
