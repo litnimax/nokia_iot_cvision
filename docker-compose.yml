@@ -11,6 +11,7 @@ services:
     environment:
       VIDEO_SOURCE: rtsp://admin:nokia123@192.168.1.25:554/Streaming/Channels/101
     restart: always
+    stop_grace_period: 1m
     healthcheck:
       test: curl -sS http://127.0.0.1:9001 || echo 1
       interval: 1m
