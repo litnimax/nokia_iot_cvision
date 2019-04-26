@@ -5,6 +5,10 @@ class Settings():
         self.settings_file = settings_file
         self.settings = self.read_settings_from_file()
 
+    def __del__(self): #не сохраняет
+        print("Save settings...")
+        self.write_settings_to_file()
+
     def read_settings_from_file(self):
         try:
             with open(self.settings_file) as file:
