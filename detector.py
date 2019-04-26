@@ -33,7 +33,8 @@ def arg_init():
 
 class main():
     def __init__(self):
-        signal.signal(signal.SIGINT, (lambda s, f: sys.exit(0)))
+        signal.signal(signal.SIGINT, (lambda s, f: exit(0)))
+        signal.signal(signal.SIGTERM, (lambda s, f: exit(0)))
         self.args = arg_init()
         self.settings_o = Settings(self.args["settings"])
         self.frame_o = Frame(self.args.get("source", None), self.settings_o)
