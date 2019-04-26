@@ -1,0 +1,24 @@
+version: '3.5'
+services:
+  cv:
+    container_name: nokia-iot-cv-server
+    image: nokia-iot-cv
+    ports:
+      - "9001:9001"
+    networks:
+      default:
+        ipv4_address: 172.18.0.12
+    environment:
+      VIDEO_SOURCE: rtsp://admin:nokia123@192.168.1.25:554/Streaming/Channels/101
+    restart: always
+    healthcheck:
+      test: curl -sS http://127.0.0.1:9001 || echo 1
+      interval: 1m
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  default:
+    external:
+      name: smart_city_net
