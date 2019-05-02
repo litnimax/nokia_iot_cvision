@@ -22,11 +22,12 @@ RUN chmod +x /etc/service/nokia_cv/run
 ARG CACHEBUST=1
 RUN git clone https://github.com/glial-iot/nokia_iot_cvision.git
 RUN mkdir nokia_iot_cvision/data
+RUN cd nokia_iot_cvision && git describe --dirty --always --tags
 
-RUN apt-get upgrade -y -o Dpkg::Options::="--force-confold"
-RUN apt-get remove git python3-pip -y
-RUN apt-get autoremove -y
-RUN apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+#RUN apt-get upgrade -y -o Dpkg::Options::="--force-confold"
+#RUN apt-get remove python3-pip -y
+#RUN apt-get autoremove -y
+#RUN apt-get clean -y && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV KILL_PROCESS_TIMEOUT=300
 ENV KILL_ALL_PROCESSES_TIMEOUT=300
